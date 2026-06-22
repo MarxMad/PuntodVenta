@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Nunito', sans-serif; -webkit-font-smoothing: antialiased; }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb { background: #F0CFDD; border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+    input, select, button, textarea { font-family: inherit; }
+    @keyframes capFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes capPop { 0% { transform: scale(.96); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  </style>
+</helmet>
+
+<div style="display: flex; height: 100vh; width: 100%; background: #FFF8FB; color: #4A3F4A; overflow: hidden;">
+
+  <!-- SIDEBAR -->
+  <aside style="width: 256px; flex: none; background: linear-gradient(180deg, #FDE7F0 0%, #EAF3FD 100%); display: flex; flex-direction: column; padding: 26px 18px; border-right: 1px solid #F4DEEA;">
+    <div style="display: flex; align-items: center; gap: 11px; padding: 4px 8px 22px;">
+      <div style="width: 44px; height: 44px; flex: none; border-radius: 15px; background: linear-gradient(135deg, #F58FB4, #8FBEEC); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 16px rgba(236,111,156,.32);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.35-9.2-8.5C1.3 9.6 2.6 6 6 6c2 0 3.2 1.3 4 2.4C10.8 7.3 12 6 14 6c3.4 0 4.7 3.6 3.2 6.5C19 16.65 12 21 12 21z" fill="#fff"/></svg>
+      </div>
+      <div>
+        <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 20px; color: #C04F7E; letter-spacing: .3px;">Caprichitos</div>
+        <div style="font-size: 11px; color: #A88B99; font-weight: 600; letter-spacing: .5px;">TIENDA · GESTIÓN</div>
+      </div>
+    </div>
+
+    <nav style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+      <button onClick="{{ navDashboard }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 14.5px; text-align: left; color: {{ navDashboardColor }}; background: {{ navDashboardBg }}; box-shadow: {{ navDashboardShadow }}; transition: all .15s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Inicio
+      </button>
+      <button onClick="{{ navCatalogo }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 14.5px; text-align: left; color: {{ navCatalogoColor }}; background: {{ navCatalogoBg }}; box-shadow: {{ navCatalogoShadow }}; transition: all .15s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Catálogo
+      </button>
+      <button onClick="{{ navInventario }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 14.5px; text-align: left; color: {{ navInventarioColor }}; background: {{ navInventarioBg }}; box-shadow: {{ navInventarioShadow }}; transition: all .15s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3"/><path d="M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"/><path d="M9 12h6"/></svg>
+        Inventario
+      </button>
+      <button onClick="{{ navVentas }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 14.5px; text-align: left; color: {{ navVentasColor }}; background: {{ navVentasBg }}; box-shadow: {{ navVentasShadow }}; transition: all .15s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h2.5l2.2 12.3a1.5 1.5 0 0 0 1.5 1.2h8.7a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/></svg>
+        Punto de venta
+      </button>
+      <button onClick="{{ navPedidos }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 14.5px; text-align: left; color: {{ navPedidosColor }}; background: {{ navPedidosBg }}; box-shadow: {{ navPedidosShadow }}; transition: all .15s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>
+        Pedidos
+      </button>
+      <button onClick="{{ navAlta }}" style="display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: none; border-radius: 14px; cursor: pointer; font-weight: 700; font-size: 14.5px; text-align: left; color: {{ navAltaColor }}; background: {{ navAltaBg }}; box-shadow: {{ navAltaShadow }}; transition: all .15s;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        Alta de producto
+      </button>
+    </nav>
+
+    <div style="margin-top: auto; background: rgba(255,255,255,.6); border-radius: 16px; padding: 14px 16px; border: 1px solid #F4DEEA;">
+      <div style="font-size: 12px; color: #A88B99; font-weight: 700;">Valor del inventario</div>
+      <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 22px; color: #C04F7E; margin-top: 2px;">{{ inventoryValueFmt }}</div>
+      <div style="font-size: 12px; color: #9B8A95; margin-top: 1px;">{{ totalUnits }} piezas en stock</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main style="flex: 1; overflow-y: auto; display: flex; flex-direction: column;">
+    <header style="position: sticky; top: 0; z-index: 5; background: rgba(255,248,251,.88); backdrop-filter: blur(10px); border-bottom: 1px solid #F4E3EC; padding: 18px 34px; display: flex; align-items: center; gap: 18px;">
+      <div style="flex: 1;">
+        <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 24px; color: #4A3F4A;">{{ screenTitle }}</div>
+        <div style="font-size: 13.5px; color: #A88B99; font-weight: 600;">{{ screenSubtitle }}</div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 9px; background: #fff; border: 1px solid #F1DEE8; border-radius: 13px; padding: 9px 14px; width: 280px; box-shadow: 0 2px 8px rgba(236,111,156,.06);">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#C9A8B8" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Buscar producto…" style="border: none; outline: none; flex: 1; font-size: 14px; color: #4A3F4A; background: transparent;"/>
+      </div>
+      <button onClick="{{ navAlta }}" style="display: flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #F072A0, #EC6F9C); color: #fff; border: none; border-radius: 13px; padding: 11px 18px; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 6px 16px rgba(236,111,156,.34);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nuevo producto
+      </button>
+    </header>
+
+    <div style="padding: 28px 34px 48px; flex: 1;">
+
+      <!-- ===== DASHBOARD ===== -->
+      <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;">
+            <div style="background: linear-gradient(135deg, #FDE7F0, #FCD7E6); border-radius: 20px; padding: 20px 22px; box-shadow: 0 4px 18px rgba(236,111,156,.12);">
+              <div style="font-size: 13px; font-weight: 700; color: #C77B98;">Ventas de hoy</div>
+              <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 30px; color: #C04F7E; margin-top: 6px;">{{ salesTodayFmt }}</div>
+              <div style="font-size: 12.5px; color: #B48799; font-weight: 600; margin-top: 2px;">{{ salesTodayCount }} ventas registradas</div>
+            </div>
+            <div style="background: linear-gradient(135deg, #E7F1FD, #D6E9FB); border-radius: 20px; padding: 20px 22px; box-shadow: 0 4px 18px rgba(124,179,232,.14);">
+              <div style="font-size: 13px; font-weight: 700; color: #5F8FC4;">Productos activos</div>
+              <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 30px; color: #3E78B8; margin-top: 6px;">{{ productCount }}</div>
+              <div style="font-size: 12.5px; color: #7F9CC2; font-weight: 600; margin-top: 2px;">en {{ categoryCount }} categorías</div>
+            </div>
+            <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; padding: 20px 22px; box-shadow: 0 4px 18px rgba(236,111,156,.08);">
+              <div style="font-size: 13px; font-weight: 700; color: #C77B98;">Stock bajo</div>
+              <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 30px; color: #E0875A; margin-top: 6px;">{{ lowStockCount }}</div>
+              <div style="font-size: 12.5px; color: #B48799; font-weight: 600; margin-top: 2px;">necesitan resurtido</div>
+            </div>
+            <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; padding: 20px 22px; box-shadow: 0 4px 18px rgba(236,111,156,.08);">
+              <div style="font-size: 13px; font-weight: 700; color: #C77B98;">Pedidos pendientes</div>
+              <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 30px; color: #8B6FC0; margin-top: 6px;">{{ pendingOrders }}</div>
+              <div style="font-size: 12.5px; color: #B48799; font-weight: 600; margin-top: 2px;">por recibir</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 18px; margin-top: 18px;">
+            <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(236,111,156,.08);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 17px;">Ventas de la semana</div>
+                <div style="font-size: 12.5px; font-weight: 700; color: #5BB98B; background: #E6F7EF; padding: 4px 11px; border-radius: 9px;">+18% vs. anterior</div>
+              </div>
+              <div style="display: flex; align-items: flex-end; gap: 14px; height: 180px; padding-top: 8px;">
+                <sc-for list="{{ weekBars }}" as="bar" hint-placeholder-count="7">
+                  <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end;">
+                    <div style="width: 100%; max-width: 38px; border-radius: 10px 10px 4px 4px; background: linear-gradient(180deg, #F58FB4, #F8B6D0); height: {{ bar.h }};"></div>
+                    <div style="font-size: 12px; font-weight: 700; color: #A88B99;">{{ bar.day }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(236,111,156,.08);">
+              <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 17px; margin-bottom: 16px;">Más vendidos</div>
+              <div style="display: flex; flex-direction: column; gap: 13px;">
+                <sc-for list="{{ topProducts }}" as="p" hint-placeholder-count="4">
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 42px; height: 42px; flex: none; border-radius: 12px; background: {{ p.tone }}; display: flex; align-items: center; justify-content: center; font-size: 19px;">{{ p.icon }}</div>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.name }}</div>
+                      <div style="font-size: 12.5px; color: #A88B99; font-weight: 600;">{{ p.cat }}</div>
+                    </div>
+                    <div style="font-family: 'Quicksand'; font-weight: 700; color: #C04F7E; font-size: 15px;">{{ p.priceFmt }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; padding: 22px 24px; box-shadow: 0 4px 18px rgba(236,111,156,.08); margin-top: 18px;">
+            <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 17px; margin-bottom: 4px;">Necesitan resurtido</div>
+            <div style="font-size: 13px; color: #A88B99; font-weight: 600; margin-bottom: 14px;">Productos con 5 piezas o menos</div>
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+              <sc-for list="{{ lowStockList }}" as="p" hint-placeholder-count="3">
+                <div style="display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #FFF6F3; border: 1px solid #FBE3D8; border-radius: 13px;">
+                  <div style="width: 36px; height: 36px; flex: none; border-radius: 10px; background: {{ p.tone }}; display: flex; align-items: center; justify-content: center; font-size: 17px;">{{ p.icon }}</div>
+                  <div style="flex: 1; font-weight: 700; font-size: 14px;">{{ p.name }}</div>
+                  <div style="font-weight: 700; font-size: 13px; color: #E0875A; background: #FCEADF; padding: 4px 11px; border-radius: 9px;">{{ p.stock }} pzs</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== CATÁLOGO ===== -->
+      <sc-if value="{{ isCatalogo }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 22px;">
+            <sc-for list="{{ catChips }}" as="c" hint-placeholder-count="8">
+              <button onClick="{{ c.on }}" style="border: 1.5px solid {{ c.border }}; background: {{ c.bg }}; color: {{ c.color }}; font-weight: 700; font-size: 13.5px; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: all .15s;">{{ c.label }}</button>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(216px, 1fr)); gap: 18px;">
+            <sc-for list="{{ catalogItems }}" as="p" hint-placeholder-count="8">
+              <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 16px rgba(236,111,156,.08); display: flex; flex-direction: column;">
+                <div style="height: 132px; background: {{ p.tone }}; display: flex; align-items: center; justify-content: center; font-size: 52px;">{{ p.icon }}</div>
+                <div style="padding: 14px 16px 16px; display: flex; flex-direction: column; flex: 1;">
+                  <div style="font-size: 11.5px; font-weight: 700; color: #B89AAA; text-transform: uppercase; letter-spacing: .4px;">{{ p.cat }}</div>
+                  <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 15.5px; color: #4A3F4A; margin: 3px 0 10px; line-height: 1.25;">{{ p.name }}</div>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-top: auto;">
+                    <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 20px; color: #C04F7E;">{{ p.priceFmt }}</div>
+                    <div style="font-size: 11.5px; font-weight: 700; color: {{ p.stockColor }}; background: {{ p.stockBg }}; padding: 3px 9px; border-radius: 8px;">{{ p.stockText }}</div>
+                  </div>
+                  <button onClick="{{ p.add }}" style="margin-top: 13px; border: none; background: #FDF1F6; color: #C04F7E; font-weight: 700; font-size: 13.5px; padding: 10px; border-radius: 12px; cursor: pointer; transition: all .15s;" style-hover="background:#F7DCE8;">Agregar a venta</button>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ catalogEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align: center; padding: 70px 20px; color: #B89AAA; font-weight: 600;">No hay productos que coincidan 🔍</div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <!-- ===== INVENTARIO ===== -->
+      <sc-if value="{{ isInventario }}" hint-placeholder-val="{{ false }}">
+        <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; box-shadow: 0 4px 18px rgba(236,111,156,.08); overflow: hidden;">
+          <div style="display: grid; grid-template-columns: 2.4fr 1fr 1fr 1fr 1fr 1fr 48px; gap: 12px; padding: 15px 22px; background: #FDF1F6; font-size: 12px; font-weight: 700; color: #B07A92; text-transform: uppercase; letter-spacing: .4px;">
+            <div>Producto</div><div>SKU</div><div>Costo</div><div>Precio</div><div>Margen</div><div>Stock</div><div></div>
+          </div>
+          <sc-for list="{{ invRows }}" as="p" hint-placeholder-count="8">
+            <div style="display: grid; grid-template-columns: 2.4fr 1fr 1fr 1fr 1fr 1fr 48px; gap: 12px; padding: 13px 22px; align-items: center; border-top: 1px solid #F6E8EF;">
+              <div style="display: flex; align-items: center; gap: 12px; min-width: 0;">
+                <div style="width: 40px; height: 40px; flex: none; border-radius: 11px; background: {{ p.tone }}; display: flex; align-items: center; justify-content: center; font-size: 19px;">{{ p.icon }}</div>
+                <div style="min-width: 0;">
+                  <div style="font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ p.name }}</div>
+                  <div style="font-size: 12px; color: #A88B99; font-weight: 600;">{{ p.cat }}</div>
+                </div>
+              </div>
+              <div style="font-size: 13px; color: #8A7782; font-weight: 700;">{{ p.sku }}</div>
+              <div style="display: flex; align-items: center; background: #FAF3F7; border: 1px solid #F1DEE8; border-radius: 10px; padding: 6px 9px;">
+                <span style="color: #B89AAA; font-size: 13px; font-weight: 700;">$</span>
+                <input type="number" value="{{ p.cost }}" onChange="{{ p.onCost }}" style="border: none; outline: none; background: transparent; width: 100%; font-size: 13.5px; font-weight: 700; color: #5A4A55;"/>
+              </div>
+              <div style="display: flex; align-items: center; background: #FDF1F6; border: 1px solid #F4D2E1; border-radius: 10px; padding: 6px 9px;">
+                <span style="color: #C04F7E; font-size: 13px; font-weight: 700;">$</span>
+                <input type="number" value="{{ p.price }}" onChange="{{ p.onPrice }}" style="border: none; outline: none; background: transparent; width: 100%; font-size: 13.5px; font-weight: 700; color: #C04F7E;"/>
+              </div>
+              <div style="font-size: 13.5px; font-weight: 700; color: #5BB98B;">{{ p.marginFmt }} <span style="color: #A8C9B8; font-size: 12px;">({{ p.marginPct }})</span></div>
+              <div style="display: flex; align-items: center; background: #FAF3F7; border: 1px solid #F1DEE8; border-radius: 10px; padding: 6px 9px;">
+                <input type="number" value="{{ p.stock }}" onChange="{{ p.onStock }}" style="border: none; outline: none; background: transparent; width: 100%; font-size: 13.5px; font-weight: 700; color: {{ p.stockColor }};"/>
+              </div>
+              <button onClick="{{ p.del }}" title="Eliminar" style="border: none; background: transparent; cursor: pointer; color: #D9A7BB; display: flex; align-items: center; justify-content: center; border-radius: 9px; height: 34px;" style-hover="background:#FBEAE8;color:#C0392B;">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>
+              </button>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <!-- ===== PUNTO DE VENTA ===== -->
+      <sc-if value="{{ isVentas }}" hint-placeholder-val="{{ false }}">
+        <div style="display: grid; grid-template-columns: 1fr 360px; gap: 18px; align-items: start;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 13px;">
+            <sc-for list="{{ saleProducts }}" as="p" hint-placeholder-count="9">
+              <button onClick="{{ p.add }}" style="text-align: left; background: #fff; border: 1px solid #F1DEE8; border-radius: 16px; padding: 13px; cursor: pointer; box-shadow: 0 3px 12px rgba(236,111,156,.07); transition: all .15s;" style-hover="border-color:#F4B0CB;transform:translateY(-2px);">
+                <div style="height: 64px; border-radius: 11px; background: {{ p.tone }}; display: flex; align-items: center; justify-content: center; font-size: 30px; margin-bottom: 10px;">{{ p.icon }}</div>
+                <div style="font-weight: 700; font-size: 13.5px; line-height: 1.25; height: 34px; overflow: hidden;">{{ p.name }}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                  <span style="font-family: 'Quicksand'; font-weight: 700; color: #C04F7E; font-size: 15px;">{{ p.priceFmt }}</span>
+                  <span style="font-size: 11px; color: #A88B99; font-weight: 700;">{{ p.stock }} pz</span>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="position: sticky; top: 92px; background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; box-shadow: 0 6px 22px rgba(236,111,156,.12); overflow: hidden;">
+            <div style="padding: 16px 20px; background: linear-gradient(135deg, #FDE7F0, #EAF3FD); display: flex; align-items: center; gap: 10px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C04F7E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h2.5l2.2 12.3a1.5 1.5 0 0 0 1.5 1.2h8.7a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/></svg>
+              <span style="font-family: 'Quicksand'; font-weight: 700; font-size: 17px; color: #C04F7E;">Ticket de venta</span>
+              <span style="margin-left: auto; font-size: 12.5px; font-weight: 700; color: #C04F7E; background: rgba(255,255,255,.7); padding: 3px 10px; border-radius: 9px;">{{ cartCount }} pzs</span>
+            </div>
+            <div style="padding: 8px 14px; max-height: 320px; overflow-y: auto;">
+              <sc-if value="{{ cartEmpty }}" hint-placeholder-val="{{ true }}">
+                <div style="text-align: center; padding: 42px 16px; color: #C2A8B5; font-weight: 600; font-size: 13.5px;">Toca un producto para<br>agregarlo al ticket 🎀</div>
+              </sc-if>
+              <sc-for list="{{ cart }}" as="c" hint-placeholder-count="0">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 9px 6px; border-bottom: 1px solid #F6E8EF;">
+                  <div style="width: 36px; height: 36px; flex: none; border-radius: 10px; background: {{ c.tone }}; display: flex; align-items: center; justify-content: center; font-size: 17px;">{{ c.icon }}</div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ c.name }}</div>
+                    <div style="font-size: 12px; color: #A88B99; font-weight: 600;">{{ c.priceFmt }} c/u</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 4px;">
+                    <button onClick="{{ c.dec }}" style="width: 24px; height: 24px; border-radius: 8px; border: none; background: #FDF1F6; color: #C04F7E; font-weight: 700; cursor: pointer; font-size: 15px;">−</button>
+                    <span style="width: 20px; text-align: center; font-weight: 700; font-size: 13.5px;">{{ c.qty }}</span>
+                    <button onClick="{{ c.inc }}" style="width: 24px; height: 24px; border-radius: 8px; border: none; background: #FDF1F6; color: #C04F7E; font-weight: 700; cursor: pointer; font-size: 15px;">+</button>
+                  </div>
+                  <div style="width: 64px; text-align: right; font-weight: 700; font-size: 13.5px; color: #4A3F4A;">{{ c.lineFmt }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding: 14px 20px 20px; border-top: 1px solid #F6E8EF;">
+              <div style="font-size: 12.5px; font-weight: 700; color: #A88B99; margin-bottom: 8px;">Forma de pago</div>
+              <div style="display: flex; gap: 7px; margin-bottom: 16px;">
+                <sc-for list="{{ payOptions }}" as="m" hint-placeholder-count="3">
+                  <button onClick="{{ m.on }}" style="flex: 1; border: none; background: {{ m.bg }}; color: {{ m.color }}; font-weight: 700; font-size: 12.5px; padding: 9px 4px; border-radius: 11px; cursor: pointer; transition: all .15s;">{{ m.label }}</button>
+                </sc-for>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px;">
+                <span style="font-weight: 700; color: #8A7782;">Total</span>
+                <span style="font-family: 'Quicksand'; font-weight: 700; font-size: 28px; color: #C04F7E;">{{ cartTotalFmt }}</span>
+              </div>
+              <button onClick="{{ checkout }}" style="width: 100%; border: none; background: linear-gradient(135deg, #F072A0, #EC6F9C); color: #fff; font-weight: 700; font-size: 15px; padding: 14px; border-radius: 14px; cursor: pointer; box-shadow: 0 6px 16px rgba(236,111,156,.34);">Cobrar venta ✨</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== PEDIDOS ===== -->
+      <sc-if value="{{ isPedidos }}" hint-placeholder-val="{{ false }}">
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; align-items: start;">
+          <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; box-shadow: 0 4px 18px rgba(236,111,156,.08); overflow: hidden;">
+            <div style="padding: 18px 22px 4px; font-family: 'Quicksand'; font-weight: 700; font-size: 17px;">Pedidos a proveedores</div>
+            <div style="padding: 6px 12px 14px;">
+              <sc-for list="{{ ordersList }}" as="o" hint-placeholder-count="3">
+                <div style="display: flex; align-items: center; gap: 14px; padding: 14px 12px; border-bottom: 1px solid #F6E8EF;">
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 9px;">
+                      <span style="font-family: 'Quicksand'; font-weight: 700; font-size: 14.5px; color: #4A3F4A;">{{ o.id }}</span>
+                      <span style="font-size: 11.5px; font-weight: 700; color: {{ o.color }}; background: {{ o.bg }}; padding: 3px 10px; border-radius: 8px;">{{ o.status }}</span>
+                    </div>
+                    <div style="font-size: 13px; font-weight: 700; color: #8A7782; margin-top: 3px;">{{ o.supplier }} · {{ o.date }}</div>
+                    <div style="font-size: 12.5px; color: #A88B99; font-weight: 600; margin-top: 2px;">{{ o.items }}</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 16px; color: #C04F7E;">{{ o.totalFmt }}</div>
+                    <sc-if value="{{ o.canReceive }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ o.receive }}" style="margin-top: 6px; border: 1.5px solid #CDE8DB; background: #fff; color: #5BB98B; font-weight: 700; font-size: 12px; padding: 6px 11px; border-radius: 10px; cursor: pointer;" style-hover="background:#E6F7EF;">Marcar recibido</button>
+                    </sc-if>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; box-shadow: 0 4px 18px rgba(236,111,156,.08); overflow: hidden;">
+            <div style="padding: 18px 22px 8px; font-family: 'Quicksand'; font-weight: 700; font-size: 17px;">Ventas recientes</div>
+            <div style="padding: 4px 12px 14px;">
+              <sc-for list="{{ recentSales }}" as="v" hint-placeholder-count="4">
+                <div style="display: flex; align-items: center; gap: 12px; padding: 11px 10px; border-bottom: 1px solid #F6E8EF;">
+                  <div style="width: 38px; height: 38px; flex: none; border-radius: 11px; background: #E6F7EF; display: flex; align-items: center; justify-content: center; color: #5BB98B;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  </div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ v.label }}</div>
+                    <div style="font-size: 12px; color: #A88B99; font-weight: 600;">{{ v.when }} · {{ v.method }}</div>
+                  </div>
+                  <div style="font-family: 'Quicksand'; font-weight: 700; color: #C04F7E; font-size: 14.5px;">{{ v.totalFmt }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <!-- ===== ALTA DE PRODUCTO ===== -->
+      <sc-if value="{{ isAlta }}" hint-placeholder-val="{{ false }}">
+        <div style="display: grid; grid-template-columns: 1fr 320px; gap: 22px; align-items: start; max-width: 940px;">
+          <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; box-shadow: 0 4px 18px rgba(236,111,156,.08); padding: 26px 28px;">
+            <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 18px; margin-bottom: 20px;">Datos del producto</div>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 700; color: #A8808F; margin-bottom: 6px;">Nombre del producto</label>
+                <input value="{{ fName }}" onInput="{{ setName }}" placeholder="Ej. Mochila Unicornio Glitter" style="width: 100%; border: 1.5px solid #F1DEE8; border-radius: 12px; padding: 11px 14px; font-size: 14px; color: #4A3F4A; outline: none;" style-focus="border-color:#F4B0CB;"/>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div>
+                  <label style="display: block; font-size: 12.5px; font-weight: 700; color: #A8808F; margin-bottom: 6px;">Categoría</label>
+                  <select value="{{ fCat }}" onChange="{{ setCat }}" style="width: 100%; border: 1.5px solid #F1DEE8; border-radius: 12px; padding: 11px 14px; font-size: 14px; color: #4A3F4A; outline: none; background: #fff; cursor: pointer;">
+                    <sc-for list="{{ categoriesList }}" as="c" hint-placeholder-count="7">
+                      <option value="{{ c }}">{{ c }}</option>
+                    </sc-for>
+                  </select>
+                </div>
+                <div>
+                  <label style="display: block; font-size: 12.5px; font-weight: 700; color: #A8808F; margin-bottom: 6px;">SKU / Código <span style="font-weight:600;color:#C2A8B5;">(opcional)</span></label>
+                  <input value="{{ fSku }}" onInput="{{ setSku }}" placeholder="Se genera solo" style="width: 100%; border: 1.5px solid #F1DEE8; border-radius: 12px; padding: 11px 14px; font-size: 14px; color: #4A3F4A; outline: none;" style-focus="border-color:#F4B0CB;"/>
+                </div>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px;">
+                <div>
+                  <label style="display: block; font-size: 12.5px; font-weight: 700; color: #A8808F; margin-bottom: 6px;">Precio venta</label>
+                  <input type="number" value="{{ fPrice }}" onInput="{{ setPrice }}" placeholder="0" style="width: 100%; border: 1.5px solid #F4D2E1; background: #FDF1F6; border-radius: 12px; padding: 11px 14px; font-size: 14px; font-weight: 700; color: #C04F7E; outline: none;"/>
+                </div>
+                <div>
+                  <label style="display: block; font-size: 12.5px; font-weight: 700; color: #A8808F; margin-bottom: 6px;">Costo</label>
+                  <input type="number" value="{{ fCost }}" onInput="{{ setCost }}" placeholder="0" style="width: 100%; border: 1.5px solid #F1DEE8; border-radius: 12px; padding: 11px 14px; font-size: 14px; font-weight: 700; color: #5A4A55; outline: none;"/>
+                </div>
+                <div>
+                  <label style="display: block; font-size: 12.5px; font-weight: 700; color: #A8808F; margin-bottom: 6px;">Stock inicial</label>
+                  <input type="number" value="{{ fStock }}" onInput="{{ setStock }}" placeholder="0" style="width: 100%; border: 1.5px solid #F1DEE8; border-radius: 12px; padding: 11px 14px; font-size: 14px; font-weight: 700; color: #5A4A55; outline: none;"/>
+                </div>
+              </div>
+              <div>
+                <label style="display: block; font-size: 12.5px; font-weight: 700; color: #A8808F; margin-bottom: 6px;">Proveedor <span style="font-weight:600;color:#C2A8B5;">(opcional)</span></label>
+                <input value="{{ fSupplier }}" onInput="{{ setSupplier }}" placeholder="Ej. Distribuidora Lila" style="width: 100%; border: 1.5px solid #F1DEE8; border-radius: 12px; padding: 11px 14px; font-size: 14px; color: #4A3F4A; outline: none;" style-focus="border-color:#F4B0CB;"/>
+              </div>
+              <button onClick="{{ submitProduct }}" style="margin-top: 6px; align-self: flex-start; border: none; background: linear-gradient(135deg, #F072A0, #EC6F9C); color: #fff; font-weight: 700; font-size: 15px; padding: 13px 26px; border-radius: 14px; cursor: pointer; box-shadow: 0 6px 16px rgba(236,111,156,.34);">Guardar producto 🎀</button>
+            </div>
+          </div>
+
+          <div style="position: sticky; top: 92px;">
+            <div style="font-size: 12.5px; font-weight: 700; color: #A8808F; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .4px;">Vista previa</div>
+            <div style="background: #fff; border: 1px solid #F1DEE8; border-radius: 20px; overflow: hidden; box-shadow: 0 6px 22px rgba(236,111,156,.12);">
+              <div style="height: 140px; background: {{ fTone }}; display: flex; align-items: center; justify-content: center; font-size: 56px;">{{ fIcon }}</div>
+              <div style="padding: 16px 18px 18px;">
+                <div style="font-size: 11.5px; font-weight: 700; color: #B89AAA; text-transform: uppercase; letter-spacing: .4px;">{{ fCat }}</div>
+                <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 16px; color: #4A3F4A; margin: 3px 0 10px; min-height: 20px;">{{ fName }}</div>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <div style="font-family: 'Quicksand'; font-weight: 700; font-size: 22px; color: #C04F7E;">${{ fPrice }}</div>
+                  <div style="font-size: 12px; font-weight: 700; color: #5BB98B; background: #E6F7EF; padding: 4px 10px; border-radius: 9px;">Margen {{ fMargin }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+    </div>
+  </main>
+
+  <!-- TOAST -->
+  <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+    <div style="position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); background: #4A3F4A; color: #fff; font-weight: 700; font-size: 14px; padding: 13px 24px; border-radius: 14px; box-shadow: 0 10px 30px rgba(74,63,74,.35); z-index: 50; animation: capPop .25s ease;">{{ toast }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'dashboard',
+    search: '',
+    catFilter: 'Todos',
+    editId: null,
+    products: [
+      { id: 1, name: 'Mochila Unicornio Glitter', cat: 'Mochilas y Bolsas', price: 349, cost: 180, stock: 14, sku: 'MOC-001', supplier: 'Distribuidora Lila', tone: '#E7F1FD', icon: '🎒' },
+      { id: 2, name: 'Bolsa Tote Pastel', cat: 'Mochilas y Bolsas', price: 199, cost: 95, stock: 22, sku: 'MOC-002', supplier: 'Distribuidora Lila', tone: '#E7F1FD', icon: '👜' },
+      { id: 3, name: 'Set Bloques Arcoíris', cat: 'Juguetes', price: 259, cost: 130, stock: 8, sku: 'JUG-014', supplier: 'JuguetesMX', tone: '#FFF6DD', icon: '🧱' },
+      { id: 4, name: 'Peluche Conejo Nube', cat: 'Juguetes', price: 289, cost: 140, stock: 5, sku: 'JUG-021', supplier: 'JuguetesMX', tone: '#FFF6DD', icon: '🐰' },
+      { id: 5, name: 'Body Bebé Algodón', cat: 'Niños', price: 159, cost: 70, stock: 30, sku: 'NIN-007', supplier: 'Textiles Sol', tone: '#FDEFE4', icon: '👶' },
+      { id: 6, name: 'Gorrito Oso Tejido', cat: 'Niños', price: 99, cost: 40, stock: 18, sku: 'NIN-012', supplier: 'Textiles Sol', tone: '#FDEFE4', icon: '🧸' },
+      { id: 7, name: 'Collar Perlitas Rosa', cat: 'Joyería', price: 129, cost: 45, stock: 25, sku: 'JOY-003', supplier: 'Brillos & Co', tone: '#F3E9FB', icon: '📿' },
+      { id: 8, name: 'Aretes Corazón Dorado', cat: 'Joyería', price: 89, cost: 30, stock: 40, sku: 'JOY-009', supplier: 'Brillos & Co', tone: '#F3E9FB', icon: '💛' },
+      { id: 9, name: 'Labial Mate Pastel', cat: 'Maquillaje', price: 119, cost: 50, stock: 33, sku: 'MAQ-005', supplier: 'Belleza Rosa', tone: '#FDE7F0', icon: '💄' },
+      { id: 10, name: 'Paleta Sombras Nude', cat: 'Maquillaje', price: 249, cost: 120, stock: 11, sku: 'MAQ-011', supplier: 'Belleza Rosa', tone: '#FDE7F0', icon: '🎨' },
+      { id: 11, name: 'Crema Facial Hidratante', cat: 'Cremas', price: 189, cost: 85, stock: 16, sku: 'CRE-002', supplier: 'Belleza Rosa', tone: '#EAF6F2', icon: '🧴' },
+      { id: 12, name: 'Gumball Clásica Roja', cat: 'Máquinas', price: 1290, cost: 780, stock: 3, sku: 'MAQ-G01', supplier: 'VendingPro', tone: '#FCE4E4', icon: '🔴' },
+      { id: 13, name: 'Máquina de Peluches Mini', cat: 'Máquinas', price: 3490, cost: 2100, stock: 2, sku: 'MAQ-P01', supplier: 'VendingPro', tone: '#FCE4E4', icon: '🎁' },
+    ],
+    sales: [
+      { id: 1, items: [{ name: 'Mochila Unicornio Glitter', qty: 1, price: 349 }], total: 349, when: 'Hoy 10:24', method: 'Efectivo' },
+      { id: 2, items: [{ name: 'Labial Mate Pastel', qty: 2, price: 119 }], total: 238, when: 'Hoy 11:05', method: 'Tarjeta' },
+      { id: 3, items: [{ name: 'Aretes Corazón Dorado', qty: 3, price: 89 }], total: 267, when: 'Hoy 12:40', method: 'Efectivo' },
+      { id: 4, items: [{ name: 'Set Bloques Arcoíris', qty: 1, price: 259 }], total: 259, when: 'Ayer 17:18', method: 'Transferencia' },
+    ],
+    orders: [
+      { id: 'PD-1042', supplier: 'JuguetesMX', items: 'Peluche Conejo Nube ×20, Set Bloques ×15', total: 4750, status: 'Pendiente', date: '22 jun' },
+      { id: 'PD-1041', supplier: 'VendingPro', items: 'Gumball Clásica ×4', total: 3120, status: 'En camino', date: '20 jun' },
+      { id: 'PD-1039', supplier: 'Belleza Rosa', items: 'Paleta Sombras ×10, Crema Facial ×12', total: 2220, status: 'Recibido', date: '15 jun' },
+    ],
+    cart: [],
+    payMethod: 'Efectivo',
+    form: { name: '', cat: 'Niños', price: '', cost: '', stock: '', sku: '', supplier: '', icon: '🧸' },
+    toast: '',
+  };
+
+  categories = ['Niños', 'Mochilas y Bolsas', 'Juguetes', 'Joyería', 'Maquillaje', 'Cremas', 'Máquinas'];
+  catTone = { 'Niños': '#FDEFE4', 'Mochilas y Bolsas': '#E7F1FD', 'Juguetes': '#FFF6DD', 'Joyería': '#F3E9FB', 'Maquillaje': '#FDE7F0', 'Cremas': '#EAF6F2', 'Máquinas': '#FCE4E4' };
+  catIcon = { 'Niños': '🧸', 'Mochilas y Bolsas': '🎒', 'Juguetes': '🧱', 'Joyería': '📿', 'Maquillaje': '💄', 'Cremas': '🧴', 'Máquinas': '🎁' };
+
+  money(n) { return '$' + Number(n || 0).toLocaleString('es-MX'); }
+
+  flash(msg) {
+    this.setState({ toast: msg });
+    clearTimeout(this._t);
+    this._t = setTimeout(() => this.setState({ toast: '' }), 2600);
+  }
+
+  nav(s) { this.setState({ screen: s, search: '' }); }
+
+  navStyle(key) {
+    const active = this.state.screen === key;
+    return {
+      bg: active ? '#ffffff' : 'transparent',
+      color: active ? '#C04F7E' : '#7A6B74',
+      shadow: active ? '0 4px 14px rgba(236,111,156,.18)' : 'none',
+    };
+  }
+
+  filtered() {
+    const q = this.state.search.trim().toLowerCase();
+    if (!q) return this.state.products;
+    return this.state.products.filter(p => p.name.toLowerCase().includes(q) || p.cat.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+  }
+
+  setForm(k, v) { this.setState(st => ({ form: { ...st.form, [k]: v } })); }
+
+  submitProduct() {
+    const f = this.state.form;
+    if (!f.name.trim() || !f.price) { this.flash('Falta nombre o precio 🥺'); return; }
+    const id = Math.max(0, ...this.state.products.map(p => p.id)) + 1;
+    const prod = {
+      id, name: f.name.trim(), cat: f.cat,
+      price: Number(f.price) || 0, cost: Number(f.cost) || 0, stock: Number(f.stock) || 0,
+      sku: f.sku.trim() || (f.cat.slice(0, 3).toUpperCase() + '-' + String(id).padStart(3, '0')),
+      supplier: f.supplier.trim() || '—',
+      tone: this.catTone[f.cat], icon: this.catIcon[f.cat],
+    };
+    this.setState(st => ({ products: [prod, ...st.products], screen: 'catalogo',
+      form: { name: '', cat: 'Niños', price: '', cost: '', stock: '', sku: '', supplier: '', icon: '🧸' } }));
+    this.flash('¡Producto agregado al catálogo! 🎀');
+  }
+
+  updateProduct(id, k, v) {
+    this.setState(st => ({ products: st.products.map(p => p.id === id ? { ...p, [k]: Number(v) || 0 } : p) }));
+  }
+  deleteProduct(id) {
+    this.setState(st => ({ products: st.products.filter(p => p.id !== id) }));
+    this.flash('Producto eliminado');
+  }
+
+  addToCart(id) {
+    this.setState(st => {
+      const ex = st.cart.find(c => c.id === id);
+      if (ex) return { cart: st.cart.map(c => c.id === id ? { ...c, qty: c.qty + 1 } : c) };
+      const p = st.products.find(x => x.id === id);
+      return { cart: [...st.cart, { id, name: p.name, price: p.price, qty: 1, icon: p.icon, tone: p.tone, max: p.stock }] };
+    });
+  }
+  changeQty(id, d) {
+    this.setState(st => ({ cart: st.cart.map(c => c.id === id ? { ...c, qty: Math.max(1, c.qty + d) } : c) }));
+  }
+  removeFromCart(id) { this.setState(st => ({ cart: st.cart.filter(c => c.id !== id) })); }
+
+  checkout() {
+    const c = this.state.cart;
+    if (!c.length) { this.flash('El carrito está vacío 🛒'); return; }
+    const total = c.reduce((a, x) => a + x.price * x.qty, 0);
+    const sale = { id: Date.now(), items: c.map(x => ({ name: x.name, qty: x.qty, price: x.price })), total, when: 'Hoy ' + new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }), method: this.state.payMethod };
+    this.setState(st => ({
+      sales: [sale, ...st.sales],
+      products: st.products.map(p => { const it = c.find(x => x.id === p.id); return it ? { ...p, stock: Math.max(0, p.stock - it.qty) } : p; }),
+      cart: [],
+    }));
+    this.flash('Venta de ' + this.money(total) + ' registrada ✨');
+  }
+
+  markReceived(id) {
+    this.setState(st => ({ orders: st.orders.map(o => o.id === id ? { ...o, status: 'Recibido' } : o) }));
+    this.flash('Pedido marcado como recibido 📦');
+  }
+
+  renderVals() {
+    const s = this.state;
+    const titles = {
+      dashboard: ['Hola de nuevo 🌸', 'Resumen de tu tienda Caprichitos'],
+      catalogo: ['Catálogo', 'Lo que ofreces a tus clientes'],
+      inventario: ['Inventario', 'Ajusta precios y existencias'],
+      ventas: ['Punto de venta', 'Registra una venta nueva'],
+      pedidos: ['Pedidos', 'Resurtidos y compras a proveedores'],
+      alta: ['Alta de producto', 'Agrega un artículo nuevo al catálogo'],
+    };
+    const invValue = s.products.reduce((a, p) => a + p.cost * p.stock, 0);
+    const totalUnits = s.products.reduce((a, p) => a + p.stock, 0);
+    const lowStock = s.products.filter(p => p.stock <= 5);
+    const salesToday = s.sales.filter(x => x.when.startsWith('Hoy'));
+
+    const nd = this.navStyle('dashboard'), nc = this.navStyle('catalogo'), ni = this.navStyle('inventario'),
+          nv = this.navStyle('ventas'), np = this.navStyle('pedidos'), na = this.navStyle('alta');
+
+    return {
+      screen: s.screen,
+      isDashboard: s.screen === 'dashboard',
+      isCatalogo: s.screen === 'catalogo',
+      isInventario: s.screen === 'inventario',
+      isVentas: s.screen === 'ventas',
+      isPedidos: s.screen === 'pedidos',
+      isAlta: s.screen === 'alta',
+      screenTitle: titles[s.screen][0],
+      screenSubtitle: titles[s.screen][1],
+      search: s.search,
+      onSearch: (e) => this.setState({ search: e.target.value }),
+
+      navDashboard: () => this.nav('dashboard'), navDashboardBg: nd.bg, navDashboardColor: nd.color, navDashboardShadow: nd.shadow,
+      navCatalogo: () => this.nav('catalogo'), navCatalogoBg: nc.bg, navCatalogoColor: nc.color, navCatalogoShadow: nc.shadow,
+      navInventario: () => this.nav('inventario'), navInventarioBg: ni.bg, navInventarioColor: ni.color, navInventarioShadow: ni.shadow,
+      navVentas: () => this.nav('ventas'), navVentasBg: nv.bg, navVentasColor: nv.color, navVentasShadow: nv.shadow,
+      navPedidos: () => this.nav('pedidos'), navPedidosBg: np.bg, navPedidosColor: np.color, navPedidosShadow: np.shadow,
+      navAlta: () => this.nav('alta'), navAltaBg: na.bg, navAltaColor: na.color, navAltaShadow: na.shadow,
+
+      inventoryValueFmt: this.money(invValue),
+      totalUnits,
+      salesTodayFmt: this.money(salesToday.reduce((a, x) => a + x.total, 0)),
+      salesTodayCount: salesToday.length,
+      productCount: s.products.length,
+      categoryCount: new Set(s.products.map(p => p.cat)).size,
+      lowStockCount: lowStock.length,
+      pendingOrders: s.orders.filter(o => o.status !== 'Recibido').length,
+
+      weekBars: [
+        { day: 'Lun', h: '46%' }, { day: 'Mar', h: '62%' }, { day: 'Mié', h: '40%' },
+        { day: 'Jue', h: '78%' }, { day: 'Vie', h: '90%' }, { day: 'Sáb', h: '100%' }, { day: 'Dom', h: '55%' },
+      ],
+      topProducts: [s.products[0], s.products[8], s.products[7], s.products[2]].map(p => ({
+        name: p.name, cat: p.cat, tone: p.tone, icon: p.icon, priceFmt: this.money(p.price),
+      })),
+      lowStockList: lowStock.map(p => ({ name: p.name, tone: p.tone, icon: p.icon, stock: p.stock })),
+
+      // ---- Catálogo ----
+      catFilter: s.catFilter,
+      catChips: ['Todos', ...this.categories].map(c => ({
+        label: c, active: s.catFilter === c,
+        on: () => this.setState({ catFilter: c }),
+        bg: s.catFilter === c ? '#EC6F9C' : '#fff',
+        color: s.catFilter === c ? '#fff' : '#8A7782',
+        border: s.catFilter === c ? '#EC6F9C' : '#F1DEE8',
+      })),
+      catalogItems: this.filtered().filter(p => s.catFilter === 'Todos' || p.cat === s.catFilter).map(p => ({
+        id: p.id, name: p.name, cat: p.cat, tone: p.tone, icon: p.icon,
+        priceFmt: this.money(p.price), stock: p.stock,
+        low: p.stock <= 5, soldOut: p.stock === 0,
+        stockText: p.stock === 0 ? 'Agotado' : (p.stock <= 5 ? 'Quedan ' + p.stock : p.stock + ' disponibles'),
+        stockColor: p.stock === 0 ? '#C0392B' : (p.stock <= 5 ? '#E0875A' : '#5BB98B'),
+        stockBg: p.stock === 0 ? '#FBEAE8' : (p.stock <= 5 ? '#FCEADF' : '#E6F7EF'),
+        add: () => this.addToCart(p.id),
+      })),
+      catalogEmpty: this.filtered().filter(p => s.catFilter === 'Todos' || p.cat === s.catFilter).length === 0,
+
+      // ---- Inventario ----
+      invRows: this.filtered().map(p => ({
+        id: p.id, name: p.name, cat: p.cat, tone: p.tone, icon: p.icon, sku: p.sku, supplier: p.supplier,
+        price: p.price, cost: p.cost, stock: p.stock,
+        marginFmt: this.money(p.price - p.cost),
+        marginPct: p.price ? Math.round((p.price - p.cost) / p.price * 100) + '%' : '—',
+        low: p.stock <= 5,
+        stockColor: p.stock <= 5 ? '#E0875A' : '#5A4A55',
+        onPrice: (e) => this.updateProduct(p.id, 'price', e.target.value),
+        onCost: (e) => this.updateProduct(p.id, 'cost', e.target.value),
+        onStock: (e) => this.updateProduct(p.id, 'stock', e.target.value),
+        del: () => this.deleteProduct(p.id),
+      })),
+
+      // ---- Alta ----
+      form: s.form,
+      categoriesList: this.categories,
+      fName: s.form.name, fCat: s.form.cat, fPrice: s.form.price, fCost: s.form.cost,
+      fStock: s.form.stock, fSku: s.form.sku, fSupplier: s.form.supplier,
+      fIcon: this.catIcon[s.form.cat] || '🛍️',
+      fTone: this.catTone[s.form.cat] || '#FDE7F0',
+      fMargin: (s.form.price && s.form.cost) ? this.money(Number(s.form.price) - Number(s.form.cost)) : '$0',
+      setName: (e) => this.setForm('name', e.target.value),
+      setCat: (e) => this.setForm('cat', e.target.value),
+      setPrice: (e) => this.setForm('price', e.target.value),
+      setCost: (e) => this.setForm('cost', e.target.value),
+      setStock: (e) => this.setForm('stock', e.target.value),
+      setSku: (e) => this.setForm('sku', e.target.value),
+      setSupplier: (e) => this.setForm('supplier', e.target.value),
+      submitProduct: () => this.submitProduct(),
+
+      // ---- Punto de venta ----
+      saleProducts: this.filtered().map(p => ({
+        id: p.id, name: p.name, tone: p.tone, icon: p.icon, priceFmt: this.money(p.price),
+        stock: p.stock, soldOut: p.stock === 0,
+        add: () => this.addToCart(p.id),
+      })),
+      cart: s.cart.map(c => ({ ...c, lineFmt: this.money(c.price * c.qty), priceFmt: this.money(c.price),
+        inc: () => this.changeQty(c.id, 1), dec: () => this.changeQty(c.id, -1), rm: () => this.removeFromCart(c.id) })),
+      cartEmpty: s.cart.length === 0,
+      cartCount: s.cart.reduce((a, c) => a + c.qty, 0),
+      cartTotalFmt: this.money(s.cart.reduce((a, c) => a + c.price * c.qty, 0)),
+      payMethod: s.payMethod,
+      payOptions: ['Efectivo', 'Tarjeta', 'Transferencia'].map(m => ({
+        label: m, active: s.payMethod === m, on: () => this.setState({ payMethod: m }),
+        bg: s.payMethod === m ? '#EC6F9C' : '#FDF1F6', color: s.payMethod === m ? '#fff' : '#A8808F',
+      })),
+      checkout: () => this.checkout(),
+
+      // ---- Pedidos ----
+      ordersList: s.orders.map(o => ({
+        ...o, totalFmt: this.money(o.total),
+        color: o.status === 'Recibido' ? '#5BB98B' : (o.status === 'En camino' ? '#5F8FC4' : '#E0875A'),
+        bg: o.status === 'Recibido' ? '#E6F7EF' : (o.status === 'En camino' ? '#E7F1FD' : '#FCEADF'),
+        canReceive: o.status !== 'Recibido',
+        receive: () => this.markReceived(o.id),
+      })),
+      recentSales: s.sales.slice(0, 6).map(x => ({
+        id: x.id, label: x.items.map(i => i.qty + '× ' + i.name).join(', '),
+        totalFmt: this.money(x.total), when: x.when, method: x.method,
+      })),
+
+      toast: s.toast,
+      hasToast: !!s.toast,
+    };
+  }
+}
+</script>
+</body>
+</html>
