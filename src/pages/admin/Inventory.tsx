@@ -51,7 +51,7 @@ export default function Inventory() {
 
   return (
     <div className="cap-fade">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 20 }}>
+      <div className="cap-grid-3" style={{ marginBottom: 20 }}>
         <Stat label="Valor del inventario" value={formatMoney(stats.value)} />
         <Stat label="Piezas en stock" value={String(stats.units)} />
         <Stat label="Productos con stock bajo" value={String(stats.low)} accent={stats.low > 0 ? C.amber : undefined} />

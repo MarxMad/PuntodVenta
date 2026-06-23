@@ -164,3 +164,265 @@ drop policy if exists "admin borra fotos de productos" on storage.objects;
 create policy "admin borra fotos de productos"
   on storage.objects for delete
   to authenticated using (bucket_id = 'productos');
+
+-- ╔══════════════════════════════════════════════════════════════════════╗
+-- ║  COLABORADORES Y PERMISOS                                              ║
+-- ╚══════════════════════════════════════════════════════════════════════╝
+
+create table if not exists public.staff (
+  id          uuid primary key default gen_random_uuid(),
+  user_id     uuid unique references auth.users(id) on delete set null,
+  email       text unique not null,
+  name        text not null,
+  permissions text[] not null default '{}',
+  active      boolean not null default true,
+  created_at  timestamptz not null default now()
+);
+
+alter table public.staff enable row level security;
+
+-- ¿Hay filas en staff? (para migración suave de admins existentes)
+create or replace function public.staff_table_populated()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.staff limit 1);
+$$;
+
+-- Permisos del usuario actual
+create or replace function public.current_permissions()
+returns text[] language sql stable security definer set search_path = public as $$
+  select case
+    when auth.uid() is null then '{}'::text[]
+    when not public.staff_table_populated() then array['*']::text[]
+    when not exists (select 1 from public.staff s where s.user_id = auth.uid())
+      then array['*']::text[]
+    else coalesce(
+      (select s.permissions from public.staff s where s.user_id = auth.uid() and s.active limit 1),
+      '{}'::text[]
+    )
+  end;
+$$;
+
+create or replace function public.has_permission(p_perm text)
+returns boolean language sql stable security definer set search_path = public as $$
+  select '*' = any(public.current_permissions()) or p_perm = any(public.current_permissions());
+$$;
+
+create or replace function public.get_my_permissions()
+returns text[] language sql stable security definer set search_path = public as $$
+  select public.current_permissions();
+$$;
+
+-- ── RLS staff ───────────────────────────────────────────────────────────
+drop policy if exists "staff lee equipo" on public.staff;
+create policy "staff lee equipo"
+  on public.staff for select to authenticated
+  using (public.has_permission('staff') or user_id = auth.uid());
+
+drop policy if exists "staff gestiona equipo" on public.staff;
+create policy "staff gestiona equipo"
+  on public.staff for insert to authenticated
+  with check (public.has_permission('staff'));
+
+drop policy if exists "staff actualiza equipo" on public.staff;
+create policy "staff actualiza equipo"
+  on public.staff for update to authenticated
+  using (public.has_permission('staff'))
+  with check (public.has_permission('staff'));
+
+-- ── RLS productos (por permiso) ─────────────────────────────────────────
+drop policy if exists "admin gestiona productos" on public.products;
+
+drop policy if exists "staff lee productos" on public.products;
+create policy "staff lee productos"
+  on public.products for select to authenticated
+  using (
+    public.has_permission('pos') or public.has_permission('inventory')
+    or public.has_permission('products') or public.has_permission('orders')
+    or public.has_permission('reports')
+  );
+
+drop policy if exists "staff crea productos" on public.products;
+create policy "staff crea productos"
+  on public.products for insert to authenticated
+  with check (public.has_permission('products'));
+
+drop policy if exists "staff actualiza productos" on public.products;
+create policy "staff actualiza productos"
+  on public.products for update to authenticated
+  using (public.has_permission('products') or public.has_permission('inventory'))
+  with check (public.has_permission('products') or public.has_permission('inventory'));
+
+drop policy if exists "staff borra productos" on public.products;
+create policy "staff borra productos"
+  on public.products for delete to authenticated
+  using (public.has_permission('products'));
+
+-- ── RLS ventas ──────────────────────────────────────────────────────────
+drop policy if exists "admin gestiona ventas" on public.sales;
+
+drop policy if exists "staff lee ventas" on public.sales;
+create policy "staff lee ventas"
+  on public.sales for select to authenticated
+  using (public.has_permission('pos') or public.has_permission('reports'));
+
+drop policy if exists "staff registra ventas" on public.sales;
+create policy "staff registra ventas"
+  on public.sales for insert to authenticated
+  with check (public.has_permission('pos'));
+
+-- ── RLS pedidos ─────────────────────────────────────────────────────────
+drop policy if exists "admin gestiona pedidos" on public.orders;
+drop policy if exists "staff pedidos" on public.orders;
+create policy "staff pedidos"
+  on public.orders for all to authenticated
+  using (public.has_permission('orders'))
+  with check (public.has_permission('orders'));
+
+-- ── RLS máquinas ────────────────────────────────────────────────────────
+drop policy if exists "admin gestiona maquinas" on public.machines;
+drop policy if exists "staff maquinas" on public.machines;
+create policy "staff maquinas"
+  on public.machines for all to authenticated
+  using (public.has_permission('machines'))
+  with check (public.has_permission('machines'));
+
+drop policy if exists "admin gestiona recolecciones" on public.collections;
+drop policy if exists "staff recolecciones" on public.collections;
+create policy "staff recolecciones"
+  on public.collections for all to authenticated
+  using (public.has_permission('machines'))
+  with check (public.has_permission('machines'));
+
+-- ── Funciones con control de permiso ────────────────────────────────────
+create or replace function public.adjust_stock(p_id uuid, p_delta integer)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not (
+    public.has_permission('inventory') or public.has_permission('pos')
+    or public.has_permission('products')
+  ) then
+    raise exception 'Sin permiso para ajustar inventario';
+  end if;
+  update public.products set stock = greatest(0, stock + p_delta) where id = p_id;
+end;
+$$;
+
+create or replace function public.receive_order(p_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare item jsonb;
+begin
+  if not public.has_permission('orders') then
+    raise exception 'Sin permiso para recibir pedidos';
+  end if;
+  update public.orders set status = 'recibido', received_at = now() where id = p_id;
+  for item in
+    select * from jsonb_array_elements((select items from public.orders where id = p_id))
+  loop
+    update public.products set stock = stock + (item->>'qty')::int where sku = item->>'sku';
+  end loop;
+end;
+$$;
+
+-- ── Crear / actualizar colaboradores (solo quien tiene permiso staff) ───
+create or replace function public.create_collaborator(
+  p_email text, p_password text, p_name text, p_permissions text[]
+) returns uuid language plpgsql security definer set search_path = public, auth as $$
+declare
+  v_user_id uuid;
+  v_staff_id uuid;
+  v_schema text;
+begin
+  if not public.has_permission('staff') then
+    raise exception 'No tienes permiso para gestionar colaboradores';
+  end if;
+  if length(trim(p_password)) < 6 then
+    raise exception 'La contraseña debe tener al menos 6 caracteres';
+  end if;
+  if exists (select 1 from public.staff where lower(email) = lower(trim(p_email))) then
+    raise exception 'Ya existe un colaborador con ese correo';
+  end if;
+
+  select coalesce(
+    (select n.nspname from pg_proc p join pg_namespace n on n.oid = p.pronamespace where p.proname = 'gen_salt' limit 1),
+    'extensions'
+  ) into v_schema;
+
+  v_user_id := gen_random_uuid();
+
+  execute format(
+    'insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data, confirmation_token, recovery_token, email_change, email_change_token_new, email_change_token_current, phone_change, phone_change_token, reauthentication_token) values (''00000000-0000-0000-0000-000000000000'', $1, ''authenticated'', ''authenticated'', $2, %I.crypt($3, %I.gen_salt(''bf'')), now(), now(), now(), ''{"provider":"email","providers":["email"]}'', ''{}'', '''', '''', '''', '''', '''', '''', '''', '''')',
+    v_schema, v_schema
+  ) using v_user_id, lower(trim(p_email)), p_password;
+
+  insert into auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
+  values (gen_random_uuid(), v_user_id, v_user_id::text, 'email',
+    jsonb_build_object('sub', v_user_id::text, 'email', lower(trim(p_email)), 'email_verified', true, 'phone_verified', false),
+    now(), now(), now());
+
+  insert into public.staff (user_id, email, name, permissions)
+  values (v_user_id, lower(trim(p_email)), trim(p_name), p_permissions)
+  returning id into v_staff_id;
+
+  return v_staff_id;
+end;
+$$;
+
+create or replace function public.update_collaborator(
+  p_id uuid, p_name text, p_permissions text[], p_active boolean
+) returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not public.has_permission('staff') then
+    raise exception 'No tienes permiso para gestionar colaboradores';
+  end if;
+  update public.staff
+     set name = trim(p_name), permissions = p_permissions, active = p_active
+   where id = p_id;
+end;
+$$;
+
+create or replace function public.reset_collaborator_password(p_id uuid, p_password text)
+returns void language plpgsql security definer set search_path = public, auth as $$
+declare
+  v_user_id uuid;
+  v_schema text;
+begin
+  if not public.has_permission('staff') then
+    raise exception 'No tienes permiso para gestionar colaboradores';
+  end if;
+  if length(trim(p_password)) < 6 then
+    raise exception 'La contraseña debe tener al menos 6 caracteres';
+  end if;
+  select user_id into v_user_id from public.staff where id = p_id;
+  if v_user_id is null then raise exception 'Colaborador no encontrado'; end if;
+
+  select coalesce(
+    (select n.nspname from pg_proc p join pg_namespace n on n.oid = p.pronamespace where p.proname = 'gen_salt' limit 1),
+    'extensions'
+  ) into v_schema;
+
+  execute format(
+    'update auth.users set encrypted_password = %I.crypt($1, %I.gen_salt(''bf'')), updated_at = now() where id = $2',
+    v_schema, v_schema
+  ) using p_password, v_user_id;
+end;
+$$;
+
+-- Storage: solo quien puede gestionar productos sube fotos
+drop policy if exists "admin sube fotos de productos" on storage.objects;
+drop policy if exists "admin actualiza fotos de productos" on storage.objects;
+drop policy if exists "admin borra fotos de productos" on storage.objects;
+
+drop policy if exists "staff sube fotos" on storage.objects;
+create policy "staff sube fotos"
+  on storage.objects for insert to authenticated
+  with check (bucket_id = 'productos' and public.has_permission('products'));
+
+drop policy if exists "staff actualiza fotos" on storage.objects;
+create policy "staff actualiza fotos"
+  on storage.objects for update to authenticated
+  using (bucket_id = 'productos' and public.has_permission('products'));
+
+drop policy if exists "staff borra fotos" on storage.objects;
+create policy "staff borra fotos"
+  on storage.objects for delete to authenticated
+  using (bucket_id = 'productos' and public.has_permission('products'));

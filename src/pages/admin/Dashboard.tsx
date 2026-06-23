@@ -36,14 +36,14 @@ export default function Dashboard() {
 
   return (
     <div className="cap-fade">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18, marginBottom: 24 }}>
+      <div className="cap-grid-4" style={{ marginBottom: 24 }}>
         <Card title="Ventas de hoy" value={formatMoney(stats.salesToday)} sub={`${stats.salesTodayCount} ventas registradas`} />
         <Card title="Valor del inventario" value={formatMoney(stats.invValue)} sub={`${products.reduce((s, p) => s + p.stock, 0)} piezas en stock`} />
         <Card title="Productos activos" value={String(stats.activeProducts)} sub="visibles en el catálogo" />
         <Card title="Stock bajo" value={String(stats.lowStock.length)} sub="necesitan reposición" accent={stats.lowStock.length > 0 ? C.amber : undefined} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 18 }}>
+      <div className="cap-grid-2">
         {/* Últimas ventas */}
         <Panel title="Últimas ventas" action={<Link to={`${ADMIN_BASE}/ventas`} style={linkStyle}>Ir al punto de venta →</Link>}>
           {sales.length === 0 ? (

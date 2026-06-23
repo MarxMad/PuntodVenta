@@ -94,7 +94,7 @@ export default function AddProduct() {
           <input value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="Ej. Cuaderno profesional rosa" style={inputStyle} />
         </Field>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="cap-grid-form-2">
           <Field label="Categoría *">
             <select value={form.category} onChange={(e) => set('category', e.target.value)} style={inputStyle}>
               {CATEGORIES.map((c) => (
@@ -111,7 +111,7 @@ export default function AddProduct() {
           <textarea value={form.description} onChange={(e) => set('description', e.target.value)} placeholder="Breve descripción para el catálogo…" rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
         </Field>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div className="cap-grid-form-2">
           <Field label="Precio de venta *">
             <input type="number" min="0" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} placeholder="0.00" style={inputStyle} />
           </Field>

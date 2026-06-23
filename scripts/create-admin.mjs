@@ -62,6 +62,12 @@ try {
       [password, id],
     )
     console.log(`\n✅ Usuario ya existía: se actualizó la contraseña de ${email}\n`)
+    await client.query(
+      `insert into public.staff (user_id, email, name, permissions)
+       values ($1, $2, $3, array['*']::text[])
+       on conflict (email) do update set user_id = $1, permissions = array['*']::text[], active = true`,
+      [id, email, email.split('@')[0]],
+    ).catch(() => {})
   } else {
     const id = (await client.query('select gen_random_uuid() as id')).rows[0].id
     await client.query(
@@ -87,6 +93,12 @@ try {
       [id, id, email],
     )
     console.log(`\n✅ Usuario admin creado: ${email}\n   Contraseña configurada. Ya puedes iniciar sesión.\n`)
+    await client.query(
+      `insert into public.staff (user_id, email, name, permissions)
+       values ($1, $2, $3, array['*']::text[])
+       on conflict (email) do update set user_id = $1, name = $3, permissions = array['*']::text[], active = true`,
+      [id, email, email.split('@')[0]],
+    )
   }
 } catch (err) {
   console.error('\n❌ No se pudo crear el usuario:\n   ' + (err?.message || err) + '\n')

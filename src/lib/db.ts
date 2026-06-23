@@ -1,5 +1,5 @@
 import { supabase, isCloud } from './supabase'
-import type { Collection, Machine, MachineType, Order, OrderItem, Product, Sale, SaleItem } from './types'
+import type { Collection, Machine, MachineType, Order, OrderItem, Product, Sale, SaleItem, SessionInfo, StaffMember } from './types'
 import { generateSku } from './sku'
 
 // ── Capa de datos ────────────────────────────────────────────────────────────
@@ -30,6 +30,13 @@ export interface DB {
 
   listCollections(): Promise<Collection[]>
   createCollection(machineId: string, amount: number, collectedAt: string, notes: string): Promise<Collection>
+
+  listStaff(): Promise<StaffMember[]>
+  createStaff(email: string, password: string, name: string, permissions: string[]): Promise<StaffMember>
+  updateStaff(id: string, name: string, permissions: string[], active: boolean): Promise<void>
+  resetStaffPassword(id: string, password: string): Promise<void>
+  getSessionInfo(): Promise<SessionInfo>
+  localSignIn(email: string, password: string): Promise<SessionInfo | null>
 }
 
 const uid = () =>
@@ -38,8 +45,15 @@ const uid = () =>
 // ── Implementación LOCAL ──────────────────────────────────────────────────────
 const KEYS = {
   products: 'cap.products', sales: 'cap.sales', orders: 'cap.orders',
-  machines: 'cap.machines', collections: 'cap.collections',
+  machines: 'cap.machines', collections: 'cap.collections', staff: 'cap.staff',
 }
+
+type LocalStaffRow = StaffMember & { password: string }
+
+const toStaff = (r: LocalStaffRow): StaffMember => ({
+  id: r.id, userId: r.userId, email: r.email, name: r.name,
+  permissions: r.permissions, active: r.active, createdAt: r.createdAt,
+})
 
 function read<T>(key: string, fallback: T): T {
   try {
@@ -185,6 +199,49 @@ const localDB: DB = {
     const c: Collection = { id: uid(), machineId, amount, collectedAt, notes, createdAt: new Date().toISOString() }
     write(KEYS.collections, [c, ...read<Collection[]>(KEYS.collections, [])])
     return c
+  },
+
+  async listStaff() {
+    return read<LocalStaffRow[]>(KEYS.staff, []).map(toStaff)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+  },
+  async createStaff(email, password, name, permissions) {
+    const all = read<LocalStaffRow[]>(KEYS.staff, [])
+    if (all.some((s) => s.email.toLowerCase() === email.toLowerCase())) {
+      throw new Error('Ya existe un colaborador con ese correo.')
+    }
+    const row: LocalStaffRow = {
+      id: uid(), userId: null, email: email.toLowerCase().trim(), name: name.trim(),
+      permissions, active: true, createdAt: new Date().toISOString(), password,
+    }
+    write(KEYS.staff, [row, ...all])
+    return toStaff(row)
+  },
+  async updateStaff(id, name, permissions, active) {
+    const all = read<LocalStaffRow[]>(KEYS.staff, [])
+    const idx = all.findIndex((s) => s.id === id)
+    if (idx === -1) throw new Error('Colaborador no encontrado')
+    all[idx] = { ...all[idx], name: name.trim(), permissions, active }
+    write(KEYS.staff, all)
+  },
+  async resetStaffPassword(id, password) {
+    const all = read<LocalStaffRow[]>(KEYS.staff, [])
+    const idx = all.findIndex((s) => s.id === id)
+    if (idx === -1) throw new Error('Colaborador no encontrado')
+    all[idx].password = password
+    write(KEYS.staff, all)
+  },
+  async getSessionInfo() {
+    const cached = sessionStorage.getItem('cap.session')
+    if (cached) return JSON.parse(cached) as SessionInfo
+    return { email: 'admin@local', name: 'Administrador', permissions: ['*'] }
+  },
+  async localSignIn(email, password) {
+    const member = read<LocalStaffRow[]>(KEYS.staff, []).find(
+      (s) => s.active && s.email.toLowerCase() === email.toLowerCase().trim() && s.password === password,
+    )
+    if (!member) return null
+    return { email: member.email, name: member.name, permissions: member.permissions }
   },
 }
 
@@ -353,6 +410,55 @@ const cloudDB: DB = {
       .single()
     if (error) throw error
     return { id: data.id, machineId, amount, collectedAt, notes, createdAt: data.created_at }
+  },
+
+  async listStaff() {
+    const { data, error } = await supabase!.from('staff').select('*').order('created_at', { ascending: false })
+    if (error) throw error
+    return (data ?? []).map((r: Row) => ({
+      id: r.id as string,
+      userId: (r.user_id as string) ?? null,
+      email: r.email as string,
+      name: r.name as string,
+      permissions: (r.permissions as string[]) ?? [],
+      active: Boolean(r.active),
+      createdAt: r.created_at as string,
+    }))
+  },
+  async createStaff(email, password, name, permissions) {
+    const { data, error } = await supabase!.rpc('create_collaborator', {
+      p_email: email, p_password: password, p_name: name, p_permissions: permissions,
+    })
+    if (error) throw error
+    const list = await this.listStaff()
+    return list.find((s) => s.id === data) ?? list[0]
+  },
+  async updateStaff(id, name, permissions, active) {
+    const { error } = await supabase!.rpc('update_collaborator', {
+      p_id: id, p_name: name, p_permissions: permissions, p_active: active,
+    })
+    if (error) throw error
+  },
+  async resetStaffPassword(id, password) {
+    const { error } = await supabase!.rpc('reset_collaborator_password', { p_id: id, p_password: password })
+    if (error) throw error
+  },
+  async getSessionInfo() {
+    const { data: userData } = await supabase!.auth.getUser()
+    const email = userData.user?.email ?? ''
+    const { data: perms, error: permErr } = await supabase!.rpc('get_my_permissions')
+    if (permErr) throw permErr
+    const permissions = (perms as string[]) ?? ['*']
+    const { data: row } = await supabase!
+      .from('staff')
+      .select('name')
+      .eq('user_id', userData.user?.id ?? '')
+      .maybeSingle()
+    const name = (row?.name as string) ?? email.split('@')[0] ?? 'Usuario'
+    return { email, name, permissions }
+  },
+  async localSignIn() {
+    return null
   },
 }
 

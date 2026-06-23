@@ -124,7 +124,7 @@ export default function POS() {
   if (loading) return <Spinner />
 
   return (
-    <div className="cap-fade" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 22, alignItems: 'start' }}>
+    <div className="cap-fade cap-grid-pos">
       {/* Columna izquierda: escáner + búsqueda */}
       <div>
         <div style={{ background: C.white, borderRadius: 20, border: `1px solid ${C.border}`, boxShadow: shadow.card, padding: 20 }}>

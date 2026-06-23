@@ -73,3 +73,19 @@ export interface Collection {
   notes: string
   createdAt: string
 }
+
+export interface StaffMember {
+  id: string
+  userId: string | null
+  email: string
+  name: string
+  permissions: string[]
+  active: boolean
+  createdAt: string
+}
+
+export interface SessionInfo {
+  email: string
+  name: string
+  permissions: string[]
+}

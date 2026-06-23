@@ -38,3 +38,71 @@ button:not(:disabled) { cursor: pointer; }
 button:disabled { opacity: .55; cursor: not-allowed; }
 
 input::placeholder, textarea::placeholder { color: #C9A8B8; }
+
+/* ── Layout responsivo (panel admin + formularios) ─────────────────────── */
+.cap-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.cap-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.cap-grid-2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; }
+.cap-grid-pos { display: grid; grid-template-columns: 1.1fr 1fr; gap: 22px; align-items: start; }
+.cap-grid-form-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+.cap-admin-shell { display: flex; height: 100vh; width: 100%; overflow: hidden; }
+.cap-admin-sidebar {
+  width: 256px; flex: none; display: flex; flex-direction: column;
+  padding: 26px 18px; transition: transform .25s ease;
+}
+.cap-admin-main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
+.cap-admin-header {
+  position: sticky; top: 0; z-index: 5; backdrop-filter: blur(10px);
+  display: flex; align-items: center; gap: 14px;
+}
+.cap-admin-content { flex: 1; }
+.cap-bottom-nav { display: none; }
+
+.cap-menu-btn {
+  display: none; width: 42px; height: 42px; flex: none; border-radius: 12px;
+  border: 1px solid #F4DEEA; background: #fff; color: #C04F7E; font-size: 20px;
+}
+.cap-sidebar-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(74, 63, 74, .35); z-index: 40;
+}
+.cap-header-new-btn span:last-child { display: inline; }
+
+@media (max-width: 900px) {
+  .cap-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .cap-grid-2, .cap-grid-pos { grid-template-columns: 1fr; }
+  .cap-admin-sidebar {
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 50;
+    transform: translateX(-105%); box-shadow: 8px 0 32px rgba(74, 63, 74, .12);
+  }
+  .cap-admin-sidebar.open { transform: translateX(0); }
+  .cap-sidebar-backdrop.open { display: block; }
+  .cap-menu-btn { display: flex; align-items: center; justify-content: center; }
+  .cap-admin-header { padding: 14px 16px !important; }
+  .cap-admin-content { padding: 18px 16px 88px !important; }
+  .cap-header-new-btn span:last-child { display: none; }
+  .cap-bottom-nav {
+    display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 30;
+    background: rgba(255, 255, 255, .94); backdrop-filter: blur(10px);
+    border-top: 1px solid #F4E3EC; padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    justify-content: space-around; gap: 4px;
+  }
+  .cap-bottom-nav a {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 8px 4px; border-radius: 12px; font-size: 10.5px; font-weight: 700; color: #8A7682;
+    max-width: 76px;
+  }
+  .cap-bottom-nav a.active { color: #C04F7E; background: #FFF0F6; }
+  .cap-bottom-nav svg { width: 20px; height: 20px; }
+}
+
+@media (max-width: 520px) {
+  .cap-grid-4, .cap-grid-3 { grid-template-columns: 1fr; }
+  .cap-grid-form-2 { grid-template-columns: 1fr; }
+}
+
+@media print {
+  .cap-admin-sidebar, .cap-admin-header, .cap-bottom-nav, .cap-menu-btn, .cap-no-print { display: none !important; }
+  .cap-admin-content { padding: 0 !important; }
+  body { background: #fff; }
+}

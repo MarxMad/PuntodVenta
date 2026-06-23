@@ -10,23 +10,32 @@ import Inventory from './pages/admin/Inventory'
 import POS from './pages/admin/POS'
 import Orders from './pages/admin/Orders'
 import Machines from './pages/admin/Machines'
+import Reports from './pages/admin/Reports'
+import Restock from './pages/admin/Restock'
+import Collaborators from './pages/admin/Collaborators'
+import { RequirePermission } from './components/RequirePermission'
+
+function Guard({ routeKey, children }: { routeKey: string; children: React.ReactNode }) {
+  return <RequirePermission routeKey={routeKey}>{children}</RequirePermission>
+}
 
 export default function App() {
   return (
     <Routes>
-      {/* Página pública */}
       <Route path="/" element={<Catalog />} />
 
-      {/* Panel de administración (ruta secreta, ver src/config.ts) */}
       <Route path={`${ADMIN_BASE}/login`} element={<Login />} />
       <Route path={ADMIN_BASE} element={<AdminLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="catalogo" element={<Products />} />
-        <Route path="inventario" element={<Inventory />} />
-        <Route path="ventas" element={<POS />} />
-        <Route path="pedidos" element={<Orders />} />
-        <Route path="maquinas" element={<Machines />} />
-        <Route path="alta" element={<AddProduct />} />
+        <Route index element={<Guard routeKey=""><Dashboard /></Guard>} />
+        <Route path="catalogo" element={<Guard routeKey="catalogo"><Products /></Guard>} />
+        <Route path="inventario" element={<Guard routeKey="inventario"><Inventory /></Guard>} />
+        <Route path="ventas" element={<Guard routeKey="ventas"><POS /></Guard>} />
+        <Route path="pedidos" element={<Guard routeKey="pedidos"><Orders /></Guard>} />
+        <Route path="maquinas" element={<Guard routeKey="maquinas"><Machines /></Guard>} />
+        <Route path="reportes" element={<Guard routeKey="reportes"><Reports /></Guard>} />
+        <Route path="resurtido" element={<Guard routeKey="resurtido"><Restock /></Guard>} />
+        <Route path="alta" element={<Guard routeKey="alta"><AddProduct /></Guard>} />
+        <Route path="colaboradores" element={<Guard routeKey="colaboradores"><Collaborators /></Guard>} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

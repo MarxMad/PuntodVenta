@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { db } from '../../lib/db'
 import type { Order, OrderItem, Product } from '../../lib/types'
 import { formatMoney, formatDate } from '../../lib/format'
@@ -14,10 +15,12 @@ const STATUS_META: Record<Order['status'], { label: string; color: string; bg: s
 
 export default function Orders() {
   const toast = useToast()
+  const location = useLocation()
   const [orders, setOrders] = useState<Order[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
+  const [initialItems, setInitialItems] = useState<Record<string, number>>({})
 
   async function load() {
     setLoading(true)
@@ -27,6 +30,15 @@ export default function Orders() {
     setLoading(false)
   }
   useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    const st = location.state as { openNew?: boolean; items?: Record<string, number> } | null
+    if (st?.openNew) {
+      setInitialItems(st.items ?? {})
+      setCreating(true)
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
 
   async function receive(o: Order) {
     if (!confirm(`¿Marcar el pedido a "${o.supplier}" como recibido? Se sumará el stock.`)) return
@@ -81,15 +93,24 @@ export default function Orders() {
         </div>
       )}
 
-      {creating && <NewOrderModal products={products} onClose={() => setCreating(false)} onSaved={() => { setCreating(false); load() }} />}
+      {creating && (
+        <NewOrderModal
+          products={products}
+          initialItems={initialItems}
+          onClose={() => { setCreating(false); setInitialItems({}) }}
+          onSaved={() => { setCreating(false); setInitialItems({}); load() }}
+        />
+      )}
     </div>
   )
 }
 
-function NewOrderModal({ products, onClose, onSaved }: { products: Product[]; onClose: () => void; onSaved: () => void }) {
+function NewOrderModal({ products, initialItems = {}, onClose, onSaved }: {
+  products: Product[]; initialItems?: Record<string, number>; onClose: () => void; onSaved: () => void
+}) {
   const toast = useToast()
   const [supplier, setSupplier] = useState('')
-  const [items, setItems] = useState<Record<string, number>>({})
+  const [items, setItems] = useState<Record<string, number>>(initialItems)
   const [search, setSearch] = useState('')
   const [busy, setBusy] = useState(false)
 
