@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { db } from '../../lib/db'
 import { CATEGORIES } from '../../lib/categories'
 import type { Product } from '../../lib/types'
@@ -16,6 +16,7 @@ import { C, font, gradient, shadow } from '../../theme'
 
 export default function AddProduct() {
   const nav = useNavigate()
+  const location = useLocation()
   const toast = useToast()
   const result = useResult()
   const [created, setCreated] = useState<Product | null>(null)
@@ -26,6 +27,14 @@ export default function AddProduct() {
     price: '', cost: '', stock: '', active: true,
   })
   const [image, setImage] = useState<ImageValue>({ file: null, url: null })
+
+  // Al volver a entrar a "Alta de producto" (botón + del encabezado o de la barra
+  // inferior) se reinicia el formulario aunque ya estuviéramos en esta ruta.
+  useEffect(() => {
+    setCreated(null)
+    setImage({ file: null, url: null })
+    setForm((f) => ({ name: '', category: f.category, description: '', price: '', cost: '', stock: '', active: true }))
+  }, [location.key])
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }))
