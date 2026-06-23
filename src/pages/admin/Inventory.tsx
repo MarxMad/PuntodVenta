@@ -3,14 +3,14 @@ import { db } from '../../lib/db'
 import type { Product } from '../../lib/types'
 import { categoryById } from '../../lib/categories'
 import { formatMoney } from '../../lib/format'
-import { useToast } from '../../components/Toast'
+import { useResult } from '../../components/ResultModal'
 import { SearchBar, Spinner } from './Products'
 import { C, font, gradient, shadow } from '../../theme'
 
 const LOW_STOCK = 5
 
 export default function Inventory() {
-  const toast = useToast()
+  const result = useResult()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -24,13 +24,21 @@ export default function Inventory() {
   useEffect(() => { load() }, [])
 
   async function adjust(p: Product, delta: number) {
-    await db.adjustStock(p.id, delta)
-    setProducts((list) => list.map((x) => (x.id === p.id ? { ...x, stock: Math.max(0, x.stock + delta) } : x)))
+    try {
+      await db.adjustStock(p.id, delta)
+      setProducts((list) => list.map((x) => (x.id === p.id ? { ...x, stock: Math.max(0, x.stock + delta) } : x)))
+    } catch (err) {
+      result({ kind: 'error', title: 'No se pudo ajustar el stock', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
+    }
   }
   async function setExact(p: Product, value: number) {
     const v = Math.max(0, Math.floor(value))
-    await db.updateProduct(p.id, { stock: v })
-    setProducts((list) => list.map((x) => (x.id === p.id ? { ...x, stock: v } : x)))
+    try {
+      await db.updateProduct(p.id, { stock: v })
+      setProducts((list) => list.map((x) => (x.id === p.id ? { ...x, stock: v } : x)))
+    } catch (err) {
+      result({ kind: 'error', title: 'No se pudo ajustar el stock', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
+    }
   }
 
   const stats = useMemo(() => ({

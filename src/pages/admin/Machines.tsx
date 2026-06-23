@@ -4,6 +4,7 @@ import type { Collection, Machine, MachineType } from '../../lib/types'
 import { MACHINE_TYPES, machineType } from '../../lib/machines'
 import { formatMoney, formatDate } from '../../lib/format'
 import { useToast } from '../../components/Toast'
+import { useResult } from '../../components/ResultModal'
 import { Spinner } from './Products'
 import { C, font, gradient, shadow } from '../../theme'
 
@@ -135,6 +136,7 @@ export default function Machines() {
 // ── Alta de varias máquinas en una ubicación ──────────────────────────────────
 function AddMachinesModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const toast = useToast()
+  const result = useResult()
   const [location, setLocation] = useState('')
   const [rows, setRows] = useState<Array<{ name: string; type: MachineType }>>([{ name: '', type: 'individual' }])
   const [busy, setBusy] = useState(false)
@@ -150,10 +152,10 @@ function AddMachinesModal({ onClose, onSaved }: { onClose: () => void; onSaved: 
     setBusy(true)
     try {
       await db.createMachines(location.trim(), valid.map((r) => ({ name: r.name.trim(), type: r.type })))
-      toast(`${valid.length} máquina${valid.length === 1 ? '' : 's'} dada${valid.length === 1 ? '' : 's'} de alta 🕹️`)
       onSaved()
+      result({ title: '¡Máquinas agregadas!', message: `${valid.length} máquina${valid.length === 1 ? '' : 's'} en ${location.trim()}.` })
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'No se pudo guardar.', 'error')
+      result({ kind: 'error', title: 'No se pudo guardar', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
     } finally {
       setBusy(false)
     }
@@ -197,6 +199,7 @@ function AddMachinesModal({ onClose, onSaved }: { onClose: () => void; onSaved: 
 // ── Registrar recolección ─────────────────────────────────────────────────────
 function CollectionModal({ machine, onClose, onSaved }: { machine: Machine; onClose: () => void; onSaved: () => void }) {
   const toast = useToast()
+  const result = useResult()
   const [date, setDate] = useState(today())
   const [amount, setAmount] = useState('')
   const [notes, setNotes] = useState('')
@@ -207,10 +210,10 @@ function CollectionModal({ machine, onClose, onSaved }: { machine: Machine; onCl
     setBusy(true)
     try {
       await db.createCollection(machine.id, Number(amount), date, notes.trim())
-      toast(`Recolección registrada · ${formatMoney(Number(amount))} 💰`)
       onSaved()
+      result({ title: '¡Recolección registrada!', message: `${formatMoney(Number(amount))} de ${machine.name}.` })
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'No se pudo registrar.', 'error')
+      result({ kind: 'error', title: 'No se pudo registrar', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
     } finally {
       setBusy(false)
     }
@@ -278,6 +281,7 @@ function HistoryModal({ machine, collections, onClose }: { machine: Machine; col
 // ── Editar / eliminar máquina ─────────────────────────────────────────────────
 function EditMachineModal({ machine, onClose, onSaved, onDeleted }: { machine: Machine; onClose: () => void; onSaved: () => void; onDeleted: () => void }) {
   const toast = useToast()
+  const result = useResult()
   const [name, setName] = useState(machine.name)
   const [location, setLocation] = useState(machine.location)
   const [type, setType] = useState<MachineType>(machine.type)
@@ -288,19 +292,23 @@ function EditMachineModal({ machine, onClose, onSaved, onDeleted }: { machine: M
     setBusy(true)
     try {
       await db.updateMachine(machine.id, { name: name.trim(), location: location.trim(), type })
-      toast('Máquina actualizada')
       onSaved()
+      result({ title: 'Máquina actualizada', message: `Se guardaron los cambios de ${name.trim()}.` })
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'No se pudo guardar.', 'error')
+      result({ kind: 'error', title: 'No se pudo guardar', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
     } finally {
       setBusy(false)
     }
   }
   async function remove() {
     if (!confirm(`¿Eliminar la máquina "${machine.name}"? Se borrará también su historial de recolecciones.`)) return
-    await db.deleteMachine(machine.id)
-    toast('Máquina eliminada')
-    onDeleted()
+    try {
+      await db.deleteMachine(machine.id)
+      onDeleted()
+      result({ title: 'Máquina eliminada', message: `Se eliminó ${machine.name}.` })
+    } catch (err) {
+      result({ kind: 'error', title: 'No se pudo eliminar', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
+    }
   }
 
   return (

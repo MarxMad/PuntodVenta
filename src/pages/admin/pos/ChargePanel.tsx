@@ -5,8 +5,8 @@ import type { CashSession, Product, Sale, SaleItem } from '../../../lib/types'
 import { categoryById } from '../../../lib/categories'
 import { cartSubtotal, cartTotal, lineNet, parseMoneyInput } from '../../../lib/saleCalc'
 import { formatMoney } from '../../../lib/format'
-import { printReceipt } from '../../../lib/print'
 import { useToast } from '../../../components/Toast'
+import SaleConfirmedModal from './SaleConfirmedModal'
 import { C, font, gradient, shadow } from '../../../theme'
 
 const SCANNER_ID = 'cap-qr-reader'
@@ -26,6 +26,7 @@ export default function ChargePanel({ products, cashSession, soldBy, onReload }:
   const [payment, setPayment] = useState<Sale['paymentMethod']>('efectivo')
   const [cartDiscount, setCartDiscount] = useState('')
   const [charging, setCharging] = useState(false)
+  const [confirmed, setConfirmed] = useState<Sale | null>(null)
 
   const productsRef = useRef<Product[]>(products)
   const scannerRef = useRef<Html5Qrcode | null>(null)
@@ -130,8 +131,7 @@ export default function ChargePanel({ products, cashSession, soldBy, onReload }:
         soldByEmail: soldBy.email,
         cashSessionId: cashSession?.id ?? null,
       })
-      toast(`Venta registrada · ${formatMoney(total)} 🎉`)
-      printReceipt(sale)
+      setConfirmed(sale)
       setCart([])
       setCartDiscount('')
       onReload()
@@ -144,6 +144,7 @@ export default function ChargePanel({ products, cashSession, soldBy, onReload }:
 
   return (
     <div className="cap-grid-pos">
+      {confirmed && <SaleConfirmedModal sale={confirmed} onClose={() => setConfirmed(null)} />}
       <div>
         {!cashSession && (
           <div style={{ background: '#FFF4E2', border: '1px solid #F6E2BE', borderRadius: 14, padding: '12px 14px', marginBottom: 14, fontSize: 13, color: C.amber, fontWeight: 600 }}>

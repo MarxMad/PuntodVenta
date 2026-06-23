@@ -4,6 +4,7 @@ import { db } from '../../lib/db'
 import type { Order, OrderItem, Product } from '../../lib/types'
 import { formatMoney, formatDate } from '../../lib/format'
 import { useToast } from '../../components/Toast'
+import { useResult } from '../../components/ResultModal'
 import { Modal } from '../../components/Modal'
 import { Spinner } from './Products'
 import { C, font, gradient, shadow } from '../../theme'
@@ -15,7 +16,7 @@ const STATUS_META: Record<Order['status'], { label: string; color: string; bg: s
 }
 
 export default function Orders() {
-  const toast = useToast()
+  const result = useResult()
   const location = useLocation()
   const [orders, setOrders] = useState<Order[]>([])
   const [products, setProducts] = useState<Product[]>([])
@@ -43,9 +44,13 @@ export default function Orders() {
 
   async function receive(o: Order) {
     if (!confirm(`¿Marcar el pedido a "${o.supplier}" como recibido? Se sumará el stock.`)) return
-    await db.receiveOrder(o.id)
-    toast('Pedido recibido · stock actualizado 📦')
-    load()
+    try {
+      await db.receiveOrder(o.id)
+      load()
+      result({ title: '¡Pedido recibido!', message: `Se sumó el stock del pedido a ${o.supplier}.` })
+    } catch (err) {
+      result({ kind: 'error', title: 'No se pudo recibir', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
+    }
   }
 
   if (loading) return <Spinner />
@@ -110,6 +115,7 @@ function NewOrderModal({ products, initialItems = {}, onClose, onSaved }: {
   products: Product[]; initialItems?: Record<string, number>; onClose: () => void; onSaved: () => void
 }) {
   const toast = useToast()
+  const result = useResult()
   const [supplier, setSupplier] = useState('')
   const [items, setItems] = useState<Record<string, number>>(initialItems)
   const [search, setSearch] = useState('')
@@ -137,10 +143,10 @@ function NewOrderModal({ products, initialItems = {}, onClose, onSaved }: {
         return { sku: p.sku, name: p.name, qty, cost: p.cost }
       })
       await db.createOrder(supplier.trim(), orderItems)
-      toast('Pedido creado')
       onSaved()
+      result({ title: '¡Pedido creado!', message: `Pedido a ${supplier.trim()} con ${chosen.length} producto${chosen.length === 1 ? '' : 's'}.` })
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'No se pudo crear.', 'error')
+      result({ kind: 'error', title: 'No se pudo crear', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
     } finally {
       setBusy(false)
     }

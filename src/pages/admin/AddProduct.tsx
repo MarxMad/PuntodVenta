@@ -4,6 +4,7 @@ import { db } from '../../lib/db'
 import { CATEGORIES } from '../../lib/categories'
 import type { Product } from '../../lib/types'
 import { useToast } from '../../components/Toast'
+import { useResult } from '../../components/ResultModal'
 import { QRCode } from '../../components/QRCode'
 import { ImagePicker, type ImageValue } from '../../components/ImagePicker'
 import { uploadProductImage } from '../../lib/storage'
@@ -16,6 +17,7 @@ import { C, font, gradient, shadow } from '../../theme'
 export default function AddProduct() {
   const nav = useNavigate()
   const toast = useToast()
+  const result = useResult()
   const [created, setCreated] = useState<Product | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -47,9 +49,8 @@ export default function AddProduct() {
         active: form.active,
       })
       setCreated(product)
-      toast('Producto creado con su SKU y QR ✨')
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'No se pudo crear.', 'error')
+      result({ kind: 'error', title: 'No se pudo crear', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
     } finally {
       setBusy(false)
     }

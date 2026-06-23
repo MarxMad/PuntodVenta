@@ -2,6 +2,7 @@ import QR from 'qrcode'
 import type { Product, Sale } from './types'
 import { formatMoney, formatDateTime } from './format'
 import { lineNet } from './saleCalc'
+import { STORE } from '../config'
 
 // Abre una ventana de impresión con una etiqueta lista para pegar al producto:
 // QR + nombre + precio + SKU. Puedes imprimir una o varias copias.
@@ -109,6 +110,33 @@ export function printReceipt(sale: Sale) {
   }
   w.document.write(html)
   w.document.close()
+}
+
+/** Versión en texto plano del ticket, para enviarlo por correo. */
+export function receiptText(sale: Sale): string {
+  const items = sale.items.map((i) => `  ${i.qty} × ${i.name} — ${formatMoney(lineNet(i))}`)
+  const lines = [
+    'Caprichitos · Ticket de venta',
+    formatDateTime(sale.createdAt),
+    `Atendió: ${sale.soldByName || '—'}`,
+    `Pago: ${sale.paymentMethod}`,
+    '',
+    ...items,
+    '',
+    `Subtotal: ${formatMoney(sale.subtotal)}`,
+  ]
+  if (sale.discount > 0) lines.push(`Descuento: −${formatMoney(sale.discount)}`)
+  lines.push(`TOTAL: ${formatMoney(sale.total)}`)
+  lines.push('', '¡Gracias por tu compra! 🌸')
+  if (STORE.email) lines.push(STORE.email)
+  return lines.join('\n')
+}
+
+/** Abre la app de correo del usuario con el ticket ya escrito (mailto). */
+export function emailReceipt(sale: Sale, to = '') {
+  const subject = `Tu ticket de ${STORE.name || 'Caprichitos'} · ${formatMoney(sale.total)}`
+  const url = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(receiptText(sale))}`
+  window.location.href = url
 }
 
 function escapeHtml(s: string): string {

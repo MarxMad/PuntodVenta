@@ -4,14 +4,14 @@ import type { Product } from '../../lib/types'
 import { CATEGORIES, categoryById } from '../../lib/categories'
 import { formatMoney } from '../../lib/format'
 import { printLabel } from '../../lib/print'
-import { useToast } from '../../components/Toast'
+import { useResult } from '../../components/ResultModal'
 import { QRCode } from '../../components/QRCode'
 import { ImagePicker, type ImageValue } from '../../components/ImagePicker'
 import { uploadProductImage } from '../../lib/storage'
 import { C, font, gradient, shadow } from '../../theme'
 
 export default function Products() {
-  const toast = useToast()
+  const result = useResult()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -31,14 +31,22 @@ export default function Products() {
   }, [products, search])
 
   async function toggleActive(p: Product) {
-    await db.updateProduct(p.id, { active: !p.active })
-    load()
+    try {
+      await db.updateProduct(p.id, { active: !p.active })
+      load()
+    } catch (err) {
+      result({ kind: 'error', title: 'No se pudo cambiar', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
+    }
   }
   async function remove(p: Product) {
     if (!confirm(`¿Eliminar "${p.name}"? Esta acción no se puede deshacer.`)) return
-    await db.deleteProduct(p.id)
-    toast('Producto eliminado')
-    load()
+    try {
+      await db.deleteProduct(p.id)
+      load()
+      result({ title: 'Producto eliminado', message: `Se eliminó ${p.name}.` })
+    } catch (err) {
+      result({ kind: 'error', title: 'No se pudo eliminar', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
+    }
   }
 
   if (loading) return <Spinner />
@@ -82,7 +90,7 @@ export default function Products() {
 }
 
 function EditModal({ product, onClose, onSaved }: { product: Product; onClose: () => void; onSaved: () => void }) {
-  const toast = useToast()
+  const result = useResult()
   const [form, setForm] = useState({
     name: product.name, category: product.category, description: product.description,
     price: String(product.price), cost: String(product.cost), stock: String(product.stock),
@@ -104,10 +112,10 @@ function EditModal({ product, onClose, onSaved }: { product: Product; onClose: (
         price: Number(form.price) || 0, cost: Number(form.cost) || 0, stock: Number(form.stock) || 0,
         imageUrl, active: form.active,
       })
-      toast('Cambios guardados')
       onSaved()
+      result({ title: 'Cambios guardados', message: `Se actualizó ${form.name.trim() || product.name}.` })
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'No se pudo guardar.', 'error')
+      result({ kind: 'error', title: 'No se pudo guardar', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
     } finally {
       setBusy(false)
     }

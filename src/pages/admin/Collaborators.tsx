@@ -5,6 +5,7 @@ import {
   ALL_PERMISSIONS, PERMISSION_META, ROLE_PRESETS, permissionsLabel, presetFromPermissions, type Permission,
 } from '../../lib/permissions'
 import { useToast } from '../../components/Toast'
+import { useResult } from '../../components/ResultModal'
 import { Modal } from '../../components/Modal'
 import { Spinner } from './Products'
 import { C, gradient, shadow } from '../../theme'
@@ -80,6 +81,7 @@ export default function Collaborators() {
 
 function StaffModal({ member, onClose, onSaved }: { member?: StaffMember; onClose: () => void; onSaved: () => void }) {
   const toast = useToast()
+  const result = useResult()
   const isEdit = Boolean(member)
   const [name, setName] = useState(member?.name ?? '')
   const [email, setEmail] = useState(member?.email ?? '')
@@ -117,14 +119,15 @@ function StaffModal({ member, onClose, onSaved }: { member?: StaffMember; onClos
       if (isEdit && member) {
         await db.updateStaff(member.id, name, permissions, active)
         if (password.length >= 6) await db.resetStaffPassword(member.id, password)
-        toast('Colaborador actualizado')
+        onSaved()
+        result({ title: 'Colaborador actualizado', message: `Se guardaron los cambios de ${name}.` })
       } else {
         await db.createStaff(email, password, name, permissions)
-        toast('Colaborador creado · ya puede iniciar sesión')
+        onSaved()
+        result({ title: '¡Colaborador agregado!', message: `${name} ya puede iniciar sesión con su correo y contraseña.` })
       }
-      onSaved()
     } catch (err) {
-      toast(err instanceof Error ? err.message : 'No se pudo guardar.', 'error')
+      result({ kind: 'error', title: 'No se pudo guardar', message: err instanceof Error ? err.message : 'Inténtalo de nuevo.' })
     } finally {
       setBusy(false)
     }
