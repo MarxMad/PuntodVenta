@@ -5,6 +5,7 @@ import { CATEGORIES, categoryById } from '../../lib/categories'
 import { formatMoney } from '../../lib/format'
 import { printLabel } from '../../lib/print'
 import { useResult } from '../../components/ResultModal'
+import { Modal } from '../../components/Modal'
 import { QRCode } from '../../components/QRCode'
 import { ImagePicker, type ImageValue } from '../../components/ImagePicker'
 import { uploadProductImage } from '../../lib/storage'
@@ -126,50 +127,52 @@ function EditModal({ product, onClose, onSaved }: { product: Product; onClose: (
   }
 
   return (
-    <div onClick={onClose} style={overlay}>
-      <div onClick={(e) => e.stopPropagation()} className="cap-pop" style={modal}>
-        <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
-          <div style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: 8, background: '#fff' }}>
-            <QRCode value={product.sku} size={88} />
-          </div>
-          <div>
-            <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 20, color: C.text }}>Editar producto</div>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: C.pinkSoft, marginTop: 4 }}>{product.sku}</div>
-            <button onClick={() => printLabel(product)} style={{ ...iconBtn, marginTop: 8 }}>🖨️ Imprimir QR</button>
-          </div>
-        </div>
-
-        <Field label="Nombre"><input value={form.name} onChange={(e) => set('name', e.target.value)} style={inputStyle} /></Field>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <Field label="Categoría">
-            <select value={form.category} onChange={(e) => set('category', e.target.value)} style={inputStyle}>
-              {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>)}
-            </select>
-          </Field>
-          <Field label="Stock"><input type="number" min="0" value={form.stock} onChange={(e) => set('stock', e.target.value)} style={inputStyle} /></Field>
-        </div>
-        <Field label="Descripción"><textarea value={form.description} onChange={(e) => set('description', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} /></Field>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <Field label="Precio"><input type="number" min="0" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} style={inputStyle} /></Field>
-          <Field label="Costo"><input type="number" min="0" step="0.01" value={form.cost} onChange={(e) => set('cost', e.target.value)} style={inputStyle} /></Field>
-        </div>
-        <div style={{ marginBottom: 14 }}>
-          <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: C.pinkSoft, marginBottom: 5 }}>Foto del producto</span>
-          <ImagePicker value={image} onChange={setImage} emoji={categoryById(form.category)?.emoji} />
-        </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18, cursor: 'pointer' }}>
-          <input type="checkbox" checked={form.active} onChange={(e) => set('active', e.target.checked)} style={{ width: 18, height: 18, accentColor: C.pink }} />
-          <span style={{ fontSize: 14, fontWeight: 600 }}>Mostrar en el catálogo público</span>
-        </label>
-
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button onClick={save} disabled={busy} style={{ background: gradient.brand, color: '#fff', border: 'none', borderRadius: 12, padding: '11px 22px', fontWeight: 700, boxShadow: shadow.btn }}>
+    <Modal
+      wide
+      title="Editar producto"
+      onClose={onClose}
+      footer={(
+        <>
+          <button onClick={save} disabled={busy} style={{ background: gradient.brand, color: '#fff', border: 'none', borderRadius: 12, padding: '11px 22px', fontWeight: 700, boxShadow: shadow.btn, flex: 1, minWidth: 140 }}>
             {busy ? 'Guardando…' : 'Guardar'}
           </button>
-          <button onClick={onClose} style={{ background: C.white, color: C.pinkSoft, border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 20px', fontWeight: 700 }}>Cancelar</button>
+          <button onClick={onClose} style={{ background: C.white, color: C.pinkSoft, border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 20px', fontWeight: 700, flex: 1, minWidth: 100 }}>Cancelar</button>
+        </>
+      )}
+    >
+      <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', marginBottom: 18 }}>
+        <div style={{ border: `1px solid ${C.border}`, borderRadius: 13, padding: 8, background: '#fff', flex: 'none' }}>
+          <QRCode value={product.sku} size={88} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontFamily: 'monospace', fontSize: 13, color: C.pinkSoft }}>{product.sku}</div>
+          <button type="button" onClick={() => printLabel(product)} style={{ ...iconBtn, marginTop: 8 }}>🖨️ Imprimir QR</button>
         </div>
       </div>
-    </div>
+
+      <Field label="Nombre"><input value={form.name} onChange={(e) => set('name', e.target.value)} style={inputStyle} /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <Field label="Categoría">
+          <select value={form.category} onChange={(e) => set('category', e.target.value)} style={inputStyle}>
+            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>)}
+          </select>
+        </Field>
+        <Field label="Stock"><input type="number" min="0" value={form.stock} onChange={(e) => set('stock', e.target.value)} style={inputStyle} /></Field>
+      </div>
+      <Field label="Descripción"><textarea value={form.description} onChange={(e) => set('description', e.target.value)} rows={2} style={{ ...inputStyle, resize: 'vertical' }} /></Field>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <Field label="Precio"><input type="number" min="0" step="0.01" value={form.price} onChange={(e) => set('price', e.target.value)} style={inputStyle} /></Field>
+        <Field label="Costo"><input type="number" min="0" step="0.01" value={form.cost} onChange={(e) => set('cost', e.target.value)} style={inputStyle} /></Field>
+      </div>
+      <div style={{ marginBottom: 14 }}>
+        <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: C.pinkSoft, marginBottom: 5 }}>Foto del producto</span>
+        <ImagePicker value={image} onChange={setImage} emoji={categoryById(form.category)?.emoji} />
+      </div>
+      <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+        <input type="checkbox" checked={form.active} onChange={(e) => set('active', e.target.checked)} style={{ width: 18, height: 18, accentColor: C.pink }} />
+        <span style={{ fontSize: 14, fontWeight: 600 }}>Mostrar en el catálogo público</span>
+      </label>
+    </Modal>
   )
 }
 
@@ -203,8 +206,6 @@ const rowStyle: React.CSSProperties = {
 const pillBtn: React.CSSProperties = { padding: '6px 12px', borderRadius: 999, fontWeight: 700, fontSize: 12.5 }
 const iconBtn: React.CSSProperties = { background: C.white, border: `1px solid ${C.border}`, color: C.pinkSoft, borderRadius: 10, padding: '7px 11px', fontWeight: 700, fontSize: 13 }
 const inputStyle: React.CSSProperties = { width: '100%', border: `1px solid ${C.borderSoft}`, borderRadius: 11, padding: '10px 13px', fontSize: 14.5, color: C.text, outline: 'none', background: '#FFFDFE' }
-const overlay: React.CSSProperties = { position: 'fixed', inset: 0, background: 'rgba(74,63,74,.35)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 100 }
-const modal: React.CSSProperties = { background: C.white, borderRadius: 22, padding: 26, width: '100%', maxWidth: 540, maxHeight: '90vh', overflowY: 'auto', boxShadow: shadow.pop }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
