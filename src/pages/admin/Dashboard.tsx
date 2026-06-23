@@ -22,7 +22,7 @@ export default function Dashboard() {
   }, [])
 
   const stats = useMemo(() => {
-    const today = sales.filter((s) => isToday(s.createdAt))
+    const today = sales.filter((s) => isToday(s.createdAt) && s.status !== 'voided')
     return {
       salesToday: today.reduce((s, x) => s + x.total, 0),
       salesTodayCount: today.length,
@@ -54,7 +54,7 @@ export default function Dashboard() {
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: C.bg, borderRadius: 12, padding: '10px 13px' }}>
                   <div style={{ width: 34, height: 34, borderRadius: 10, background: gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🧾</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{s.items.reduce((a, i) => a + i.qty, 0)} artículos · {s.paymentMethod}</div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{s.items.reduce((a, i) => a + i.qty, 0)} artículos · {s.paymentMethod}{s.status === 'voided' ? ' · cancelada' : ''}</div>
                     <div style={{ fontSize: 12, color: C.muted }}>{formatDateTime(s.createdAt)}</div>
                   </div>
                   <div style={{ fontWeight: 700, color: C.pinkDeep }}>{formatMoney(s.total)}</div>

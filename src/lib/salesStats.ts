@@ -27,6 +27,7 @@ export function aggregateProductSales(
 
   for (const sale of sales) {
     if (!inRange(sale.createdAt, from, to)) continue
+    if (sale.status === 'voided') continue
     const seen = new Set<string>()
     for (const item of sale.items) {
       const key = item.productId || item.sku.toLowerCase()

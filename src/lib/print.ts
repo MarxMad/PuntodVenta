@@ -1,6 +1,7 @@
 import QR from 'qrcode'
-import type { Product } from './types'
-import { formatMoney } from './format'
+import type { Product, Sale } from './types'
+import { formatMoney, formatDateTime } from './format'
+import { lineNet } from './saleCalc'
 
 // Abre una ventana de impresión con una etiqueta lista para pegar al producto:
 // QR + nombre + precio + SKU. Puedes imprimir una o varias copias.
@@ -46,6 +47,64 @@ export async function printLabel(product: Product, copies = 1) {
   const w = window.open('', '_blank', 'width=420,height=560')
   if (!w) {
     alert('Permite las ventanas emergentes para imprimir la etiqueta.')
+    return
+  }
+  w.document.write(html)
+  w.document.close()
+}
+
+/** Ticket de venta para imprimir o entregar al cliente. */
+export function printReceipt(sale: Sale) {
+  const voided = sale.status === 'voided'
+  const rows = sale.items.map((i) => {
+    const net = lineNet(i)
+    const disc = i.lineDiscount ? `<div class="disc">−${formatMoney(i.lineDiscount)}</div>` : ''
+    return `<tr>
+      <td class="qty">${i.qty}</td>
+      <td class="name">${escapeHtml(i.name)}${disc}</td>
+      <td class="amt">${formatMoney(net)}</td>
+    </tr>`
+  }).join('')
+
+  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Ticket ${sale.id.slice(0, 8)}</title>
+    <style>
+      @page { margin: 6mm; size: 80mm auto; }
+      body { font-family: 'Nunito', system-ui, sans-serif; margin: 0; padding: 10px; color: #333; max-width: 300px; }
+      .brand { text-align: center; font-weight: 800; font-size: 18px; color: #C04F7E; }
+      .sub { text-align: center; font-size: 11px; color: #888; margin: 2px 0 10px; }
+      .meta { font-size: 11px; color: #666; margin-bottom: 10px; line-height: 1.45; }
+      table { width: 100%; border-collapse: collapse; font-size: 12px; }
+      td { padding: 5px 0; vertical-align: top; border-bottom: 1px dotted #e8d4de; }
+      .qty { width: 24px; font-weight: 700; }
+      .name { line-height: 1.25; }
+      .amt { text-align: right; font-weight: 700; white-space: nowrap; }
+      .disc { font-size: 10px; color: #C04F7E; font-weight: 600; }
+      .totals { margin-top: 10px; font-size: 12px; }
+      .totals div { display: flex; justify-content: space-between; margin: 4px 0; }
+      .total { font-size: 18px; font-weight: 800; color: #C04F7E; border-top: 2px solid #F4DEEA; padding-top: 8px; margin-top: 8px; }
+      .void { text-align: center; color: #c0392b; font-weight: 800; font-size: 14px; margin-top: 8px; }
+      .thanks { text-align: center; font-size: 11px; color: #888; margin-top: 12px; }
+    </style></head><body>
+    <div class="brand">Caprichitos</div>
+    <div class="sub">Ticket de venta</div>
+    <div class="meta">
+      ${formatDateTime(sale.createdAt)}<br/>
+      Atendió: ${escapeHtml(sale.soldByName || '—')}<br/>
+      Pago: ${escapeHtml(sale.paymentMethod)}
+    </div>
+    <table><tbody>${rows}</tbody></table>
+    <div class="totals">
+      <div><span>Subtotal</span><span>${formatMoney(sale.subtotal)}</span></div>
+      ${sale.discount > 0 ? `<div><span>Descuento</span><span>−${formatMoney(sale.discount)}</span></div>` : ''}
+      <div class="total"><span>Total</span><span>${formatMoney(sale.total)}</span></div>
+    </div>
+    ${voided ? '<div class="void">VENTA CANCELADA</div>' : '<div class="thanks">¡Gracias por tu compra! 🌸</div>'}
+    <script>window.onload = () => { window.print(); }<\/script>
+    </body></html>`
+
+  const w = window.open('', '_blank', 'width=360,height=640')
+  if (!w) {
+    alert('Permite las ventanas emergentes para imprimir el ticket.')
     return
   }
   w.document.write(html)

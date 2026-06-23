@@ -1,5 +1,5 @@
 import { supabase, isCloud } from './supabase'
-import type { Collection, Machine, MachineType, Order, OrderItem, Product, Sale, SaleItem, SessionInfo, StaffMember } from './types'
+import type { CashSession, Collection, CreateSaleParams, Machine, MachineType, Order, OrderItem, Product, Sale, SaleItem, SessionInfo, StaffMember } from './types'
 import { generateSku } from './sku'
 
 // ── Capa de datos ────────────────────────────────────────────────────────────
@@ -17,7 +17,13 @@ export interface DB {
   adjustStock(id: string, delta: number): Promise<void>
 
   listSales(): Promise<Sale[]>
-  createSale(items: SaleItem[], paymentMethod: Sale['paymentMethod']): Promise<Sale>
+  createSale(params: CreateSaleParams): Promise<Sale>
+  voidSale(id: string): Promise<void>
+
+  getOpenCashSession(): Promise<CashSession | null>
+  openCashSession(openingCash: number, openedByName: string, openedByEmail: string): Promise<CashSession>
+  closeCashSession(id: string, closingCash: number, notes?: string): Promise<CashSession>
+  listCashSessions(): Promise<CashSession[]>
 
   listOrders(): Promise<Order[]>
   createOrder(supplier: string, items: OrderItem[]): Promise<Order>
@@ -46,6 +52,55 @@ const uid = () =>
 const KEYS = {
   products: 'cap.products', sales: 'cap.sales', orders: 'cap.orders',
   machines: 'cap.machines', collections: 'cap.collections', staff: 'cap.staff',
+  cashSessions: 'cap.cashSessions',
+}
+
+function normalizeSale(s: Sale): Sale {
+  const subtotal = s.subtotal ?? s.items.reduce((sum, i) => sum + i.price * i.qty - (i.lineDiscount ?? 0), 0)
+  return {
+    ...s,
+    subtotal,
+    discount: s.discount ?? 0,
+    soldByName: s.soldByName ?? '',
+    soldByEmail: s.soldByEmail ?? '',
+    status: s.status ?? 'completed',
+    voidedAt: s.voidedAt ?? null,
+    cashSessionId: s.cashSessionId ?? null,
+  }
+}
+
+function toSale(r: Row): Sale {
+  const items = (r.items as SaleItem[]) ?? []
+  const total = Number(r.total)
+  return normalizeSale({
+    id: r.id as string,
+    items,
+    subtotal: Number(r.subtotal ?? total),
+    discount: Number(r.discount ?? 0),
+    total,
+    paymentMethod: r.payment_method as Sale['paymentMethod'],
+    soldByName: (r.sold_by_name as string) ?? '',
+    soldByEmail: (r.sold_by_email as string) ?? '',
+    status: (r.status as Sale['status']) ?? 'completed',
+    voidedAt: (r.voided_at as string) ?? null,
+    cashSessionId: (r.cash_session_id as string) ?? null,
+    createdAt: r.created_at as string,
+  })
+}
+
+function toCashSession(r: Row): CashSession {
+  return {
+    id: r.id as string,
+    openedByName: r.opened_by_name as string,
+    openedByEmail: (r.opened_by_email as string) ?? '',
+    openingCash: Number(r.opening_cash),
+    openedAt: r.opened_at as string,
+    closedAt: (r.closed_at as string) ?? null,
+    closingCash: r.closing_cash != null ? Number(r.closing_cash) : null,
+    expectedCash: r.expected_cash != null ? Number(r.expected_cash) : null,
+    notes: (r.notes as string) ?? '',
+    status: (r.status as CashSession['status']) ?? 'open',
+  }
 }
 
 type LocalStaffRow = StaffMember & { password: string }
@@ -128,15 +183,82 @@ const localDB: DB = {
   },
 
   async listSales() {
-    return read<Sale[]>(KEYS.sales, []).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+    return read<Sale[]>(KEYS.sales, []).map(normalizeSale)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
   },
-  async createSale(items, paymentMethod) {
-    const total = items.reduce((s, i) => s + i.price * i.qty, 0)
-    const sale: Sale = { id: uid(), items, total, paymentMethod, createdAt: new Date().toISOString() }
+  async createSale(params) {
+    const sale: Sale = {
+      id: uid(),
+      items: params.items,
+      subtotal: params.subtotal,
+      discount: params.discount,
+      total: params.total,
+      paymentMethod: params.paymentMethod,
+      soldByName: params.soldByName,
+      soldByEmail: params.soldByEmail,
+      status: 'completed',
+      voidedAt: null,
+      cashSessionId: params.cashSessionId ?? null,
+      createdAt: new Date().toISOString(),
+    }
     write(KEYS.sales, [sale, ...read<Sale[]>(KEYS.sales, [])])
-    // Descuenta stock
-    for (const item of items) await this.adjustStock(item.productId, -item.qty)
+    for (const item of params.items) await this.adjustStock(item.productId, -item.qty)
     return sale
+  },
+  async voidSale(id) {
+    const sales = read<Sale[]>(KEYS.sales, []).map(normalizeSale)
+    const idx = sales.findIndex((s) => s.id === id)
+    if (idx === -1) throw new Error('Venta no encontrada')
+    if (sales[idx].status === 'voided') throw new Error('Esta venta ya fue cancelada')
+    for (const item of sales[idx].items) await this.adjustStock(item.productId, item.qty)
+    sales[idx] = { ...sales[idx], status: 'voided', voidedAt: new Date().toISOString() }
+    write(KEYS.sales, sales)
+  },
+
+  async getOpenCashSession() {
+    return read<CashSession[]>(KEYS.cashSessions, []).find((s) => s.status === 'open') ?? null
+  },
+  async openCashSession(openingCash, openedByName, openedByEmail) {
+    const open = await this.getOpenCashSession()
+    if (open) throw new Error('Ya hay una caja abierta. Ciérrala antes de abrir otra.')
+    const session: CashSession = {
+      id: uid(),
+      openedByName,
+      openedByEmail,
+      openingCash,
+      openedAt: new Date().toISOString(),
+      closedAt: null,
+      closingCash: null,
+      expectedCash: null,
+      notes: '',
+      status: 'open',
+    }
+    write(KEYS.cashSessions, [session, ...read<CashSession[]>(KEYS.cashSessions, [])])
+    return session
+  },
+  async closeCashSession(id, closingCash, notes = '') {
+    const all = read<CashSession[]>(KEYS.cashSessions, [])
+    const idx = all.findIndex((s) => s.id === id)
+    if (idx === -1) throw new Error('Corte de caja no encontrado')
+    const sales = await this.listSales()
+    const efectivo = sales
+      .filter((s) => s.cashSessionId === id && s.status === 'completed' && s.paymentMethod === 'efectivo')
+      .reduce((sum, s) => sum + s.total, 0)
+    const expectedCash = all[idx].openingCash + efectivo
+    all[idx] = {
+      ...all[idx],
+      status: 'closed',
+      closedAt: new Date().toISOString(),
+      closingCash,
+      expectedCash,
+      notes,
+    }
+    write(KEYS.cashSessions, all)
+    return all[idx]
+  },
+  async listCashSessions() {
+    return read<CashSession[]>(KEYS.cashSessions, [])
+      .sort((a, b) => (a.openedAt < b.openedAt ? 1 : -1))
   },
 
   async listOrders() {
@@ -313,24 +435,83 @@ const cloudDB: DB = {
   async listSales() {
     const { data, error } = await supabase!.from('sales').select('*').order('created_at', { ascending: false })
     if (error) throw error
-    return (data ?? []).map((r: Row) => ({
-      id: r.id as string,
-      items: (r.items as SaleItem[]) ?? [],
-      total: Number(r.total),
-      paymentMethod: r.payment_method as Sale['paymentMethod'],
-      createdAt: r.created_at as string,
-    }))
+    return (data ?? []).map(toSale)
   },
-  async createSale(items, paymentMethod) {
-    const total = items.reduce((s, i) => s + i.price * i.qty, 0)
+  async createSale(params) {
     const { data, error } = await supabase!
       .from('sales')
-      .insert({ items, total, payment_method: paymentMethod })
+      .insert({
+        items: params.items,
+        subtotal: params.subtotal,
+        discount: params.discount,
+        total: params.total,
+        payment_method: params.paymentMethod,
+        sold_by_name: params.soldByName,
+        sold_by_email: params.soldByEmail,
+        cash_session_id: params.cashSessionId ?? null,
+        status: 'completed',
+      })
       .select()
       .single()
     if (error) throw error
-    for (const item of items) await this.adjustStock(item.productId, -item.qty)
-    return { id: data.id, items, total, paymentMethod, createdAt: data.created_at }
+    for (const item of params.items) await this.adjustStock(item.productId, -item.qty)
+    return toSale(data)
+  },
+  async voidSale(id) {
+    const { error } = await supabase!.rpc('void_sale', { p_id: id })
+    if (error) throw error
+  },
+
+  async getOpenCashSession() {
+    const { data, error } = await supabase!
+      .from('cash_sessions')
+      .select('*')
+      .eq('status', 'open')
+      .maybeSingle()
+    if (error) throw error
+    return data ? toCashSession(data) : null
+  },
+  async openCashSession(openingCash, openedByName, openedByEmail) {
+    const { data, error } = await supabase!
+      .from('cash_sessions')
+      .insert({
+        opening_cash: openingCash,
+        opened_by_name: openedByName,
+        opened_by_email: openedByEmail,
+        status: 'open',
+      })
+      .select()
+      .single()
+    if (error) throw error
+    return toCashSession(data)
+  },
+  async closeCashSession(id, closingCash, notes = '') {
+    const { data: row, error: fetchErr } = await supabase!.from('cash_sessions').select('*').eq('id', id).single()
+    if (fetchErr) throw fetchErr
+    const sales = await this.listSales()
+    const efectivo = sales
+      .filter((s) => s.cashSessionId === id && s.status === 'completed' && s.paymentMethod === 'efectivo')
+      .reduce((sum, s) => sum + s.total, 0)
+    const expectedCash = Number(row.opening_cash) + efectivo
+    const { data, error } = await supabase!
+      .from('cash_sessions')
+      .update({
+        status: 'closed',
+        closed_at: new Date().toISOString(),
+        closing_cash: closingCash,
+        expected_cash: expectedCash,
+        notes,
+      })
+      .eq('id', id)
+      .select()
+      .single()
+    if (error) throw error
+    return toCashSession(data)
+  },
+  async listCashSessions() {
+    const { data, error } = await supabase!.from('cash_sessions').select('*').order('opened_at', { ascending: false })
+    if (error) throw error
+    return (data ?? []).map(toCashSession)
   },
 
   async listOrders() {

@@ -77,6 +77,7 @@ export function computeIncomeStatement(
 
   for (const sale of sales) {
     if (!inRange(sale.createdAt, from, to)) continue
+    if (sale.status === 'voided') continue
     saleCount++
     revenue += sale.total
     for (const item of sale.items) {

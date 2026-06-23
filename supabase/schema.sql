@@ -426,3 +426,76 @@ drop policy if exists "staff borra fotos" on storage.objects;
 create policy "staff borra fotos"
   on storage.objects for delete to authenticated
   using (bucket_id = 'productos' and public.has_permission('products'));
+
+-- ╔══════════════════════════════════════════════════════════════════════╗
+-- ║  POS AVANZADO: descuentos, ticket, corte de caja, devoluciones         ║
+-- ╚══════════════════════════════════════════════════════════════════════╝
+
+alter table public.sales add column if not exists subtotal numeric(10,2) not null default 0;
+alter table public.sales add column if not exists discount numeric(10,2) not null default 0;
+alter table public.sales add column if not exists sold_by_name text not null default '';
+alter table public.sales add column if not exists sold_by_email text not null default '';
+alter table public.sales add column if not exists status text not null default 'completed';
+alter table public.sales add column if not exists voided_at timestamptz;
+alter table public.sales add column if not exists cash_session_id uuid;
+
+-- Migrar ventas antiguas sin subtotal
+update public.sales set subtotal = total where subtotal = 0 and discount = 0;
+
+create table if not exists public.cash_sessions (
+  id               uuid primary key default gen_random_uuid(),
+  opened_by_name   text not null,
+  opened_by_email  text not null default '',
+  opening_cash     numeric(10,2) not null default 0,
+  opened_at        timestamptz not null default now(),
+  closed_at        timestamptz,
+  closing_cash     numeric(10,2),
+  expected_cash    numeric(10,2),
+  notes            text default '',
+  status           text not null default 'open'
+);
+
+create unique index if not exists cash_sessions_one_open
+  on public.cash_sessions ((status)) where status = 'open';
+
+alter table public.sales
+  drop constraint if exists sales_cash_session_id_fkey;
+alter table public.sales
+  add constraint sales_cash_session_id_fkey
+  foreign key (cash_session_id) references public.cash_sessions(id) on delete set null;
+
+alter table public.cash_sessions enable row level security;
+
+drop policy if exists "staff caja" on public.cash_sessions;
+create policy "staff caja"
+  on public.cash_sessions for all to authenticated
+  using (public.has_permission('pos'))
+  with check (public.has_permission('pos'));
+
+drop policy if exists "staff actualiza ventas" on public.sales;
+create policy "staff actualiza ventas"
+  on public.sales for update to authenticated
+  using (public.has_permission('pos'))
+  with check (public.has_permission('pos'));
+
+create or replace function public.void_sale(p_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+declare
+  v_sale public.sales%rowtype;
+  item jsonb;
+begin
+  if not public.has_permission('pos') then
+    raise exception 'Sin permiso para cancelar ventas';
+  end if;
+
+  select * into v_sale from public.sales where id = p_id for update;
+  if not found then raise exception 'Venta no encontrada'; end if;
+  if v_sale.status = 'voided' then raise exception 'Esta venta ya fue cancelada'; end if;
+
+  update public.sales set status = 'voided', voided_at = now() where id = p_id;
+
+  for item in select * from jsonb_array_elements(v_sale.items) loop
+    perform public.adjust_stock((item->>'productId')::uuid, (item->>'qty')::int);
+  end loop;
+end;
+$$;

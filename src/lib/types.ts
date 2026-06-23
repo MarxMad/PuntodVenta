@@ -20,14 +20,48 @@ export interface SaleItem {
   name: string
   price: number
   qty: number
+  lineDiscount?: number
 }
+
+export type SaleStatus = 'completed' | 'voided'
 
 export interface Sale {
   id: string
   items: SaleItem[]
+  subtotal: number
+  discount: number
   total: number
   paymentMethod: 'efectivo' | 'tarjeta' | 'transferencia' | 'otro'
+  soldByName: string
+  soldByEmail: string
+  status: SaleStatus
+  voidedAt: string | null
+  cashSessionId: string | null
   createdAt: string
+}
+
+export interface CreateSaleParams {
+  items: SaleItem[]
+  paymentMethod: Sale['paymentMethod']
+  subtotal: number
+  discount: number
+  total: number
+  soldByName: string
+  soldByEmail: string
+  cashSessionId?: string | null
+}
+
+export interface CashSession {
+  id: string
+  openedByName: string
+  openedByEmail: string
+  openingCash: number
+  openedAt: string
+  closedAt: string | null
+  closingCash: number | null
+  expectedCash: number | null
+  notes: string
+  status: 'open' | 'closed'
 }
 
 export type OrderStatus = 'pendiente' | 'en_camino' | 'recibido'
