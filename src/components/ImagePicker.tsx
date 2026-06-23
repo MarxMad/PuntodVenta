@@ -119,11 +119,11 @@ function CameraModal({ onCapture, onClose }: { onCapture: (f: File) => void; onC
         )}
         <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
           {!error && (
-            <button onClick={snap} style={{ flex: 1, background: gradient.brand, color: '#fff', border: 'none', borderRadius: 13, padding: '12px', fontWeight: 700, fontSize: 15, boxShadow: shadow.btn }}>
+            <button type="button" onClick={snap} style={{ flex: 1, background: gradient.brand, color: '#fff', border: 'none', borderRadius: 13, padding: '12px', fontWeight: 700, fontSize: 15, boxShadow: shadow.btn }}>
               📸 Capturar
             </button>
           )}
-          <button onClick={onClose} style={{ background: C.white, color: C.pinkSoft, border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 20px', fontWeight: 700 }}>Cancelar</button>
+          <button type="button" onClick={onClose} style={{ background: C.white, color: C.pinkSoft, border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 20px', fontWeight: 700 }}>Cancelar</button>
         </div>
       </div>
     </div>

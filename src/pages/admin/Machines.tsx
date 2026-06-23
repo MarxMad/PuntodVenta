@@ -98,23 +98,27 @@ export default function Machines() {
                     const t = machineType(m.type)
                     const info = totalByMachine[m.id]
                     return (
-                      <div key={m.id} style={rowStyle}>
-                        <div style={{ width: 52, height: 52, flex: 'none', borderRadius: 13, background: gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                          {m.type === 'peluche' ? '🧸' : '🕹️'}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{m.name}</div>
-                          <div style={{ fontSize: 12.5, color: C.muted }}>
-                            {t.label}{info?.last ? ` · última recolección ${formatDate(info.last)}` : ' · sin recolecciones'}
+                      <div key={m.id} className="cap-list-row" style={rowStyle}>
+                        <div className="cap-list-main">
+                          <div style={{ width: 52, height: 52, flex: 'none', borderRadius: 13, background: gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
+                            {m.type === 'peluche' ? '🧸' : '🕹️'}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{m.name}</div>
+                            <div style={{ fontSize: 12.5, color: C.muted }}>
+                              {t.label}{info?.last ? ` · última recolección ${formatDate(info.last)}` : ' · sin recolecciones'}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right', flex: 'none', width: 110 }}>
+                            <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 17, color: C.pinkDeep }}>{formatMoney(info?.total ?? 0)}</div>
+                            <div style={{ fontSize: 11.5, color: C.mutedSoft, fontWeight: 600 }}>total recolectado</div>
                           </div>
                         </div>
-                        <div style={{ textAlign: 'right', flex: 'none', width: 110 }}>
-                          <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 17, color: C.pinkDeep }}>{formatMoney(info?.total ?? 0)}</div>
-                          <div style={{ fontSize: 11.5, color: C.mutedSoft, fontWeight: 600 }}>total recolectado</div>
+                        <div className="cap-list-actions">
+                          <button onClick={() => setCollectFor(m)} style={{ ...iconBtn, background: gradient.brand, color: '#fff', border: 'none' }}>💰 Recolección</button>
+                          <button onClick={() => setHistoryFor(m)} style={iconBtn}>Historial</button>
+                          <button onClick={() => setEditing(m)} style={iconBtn}>Editar</button>
                         </div>
-                        <button onClick={() => setCollectFor(m)} style={{ ...iconBtn, background: gradient.brand, color: '#fff', border: 'none' }}>💰 Recolección</button>
-                        <button onClick={() => setHistoryFor(m)} style={iconBtn}>Historial</button>
-                        <button onClick={() => setEditing(m)} style={iconBtn}>Editar</button>
                       </div>
                     )
                   })}

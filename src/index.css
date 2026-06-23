@@ -101,6 +101,18 @@ input::placeholder, textarea::placeholder { color: #C9A8B8; }
   .cap-grid-form-2 { grid-template-columns: 1fr; }
 }
 
+/* ── Filas de lista con acciones (catálogo, máquinas, inventario) ─────── */
+.cap-list-row { display: flex; align-items: center; gap: 14px; }
+.cap-list-main { display: flex; align-items: center; gap: 14px; flex: 1 1 auto; min-width: 0; }
+.cap-list-actions { display: flex; align-items: center; gap: 8px; flex: none; }
+
+@media (max-width: 640px) {
+  .cap-list-row { flex-wrap: wrap; }
+  .cap-list-main { flex-basis: 100%; }
+  .cap-list-actions { width: 100%; flex-wrap: wrap; }
+  .cap-list-actions > button { flex: 1 1 auto; }
+}
+
 @media print {
   .cap-admin-sidebar, .cap-admin-header, .cap-bottom-nav, .cap-menu-btn, .cap-no-print { display: none !important; }
   .cap-admin-content { padding: 0 !important; }

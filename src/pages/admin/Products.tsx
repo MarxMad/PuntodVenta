@@ -59,26 +59,30 @@ export default function Products() {
         {visible.map((p) => {
           const cat = categoryById(p.category)
           return (
-            <div key={p.id} style={rowStyle}>
-              <div style={{ width: 52, height: 52, flex: 'none', borderRadius: 13, background: p.imageUrl ? `url(${p.imageUrl}) center/cover` : gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
-                {!p.imageUrl && (cat?.emoji ?? '🎀')}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{p.name}</div>
-                <div style={{ fontSize: 12.5, color: C.muted }}>
-                  <span style={{ fontFamily: 'monospace', color: C.pinkSoft }}>{p.sku}</span> · {cat?.label}
+            <div key={p.id} className="cap-list-row" style={rowStyle}>
+              <div className="cap-list-main">
+                <div style={{ width: 52, height: 52, flex: 'none', borderRadius: 13, background: p.imageUrl ? `url(${p.imageUrl}) center/cover` : gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
+                  {!p.imageUrl && (cat?.emoji ?? '🎀')}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{p.name}</div>
+                  <div style={{ fontSize: 12.5, color: C.muted }}>
+                    <span style={{ fontFamily: 'monospace', color: C.pinkSoft }}>{p.sku}</span> · {cat?.label}
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right', flex: 'none', width: 90 }}>
+                  <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 17, color: C.pinkDeep }}>{formatMoney(p.price)}</div>
+                  <div style={{ fontSize: 12, color: p.stock <= 5 ? C.amber : C.mutedSoft, fontWeight: 600 }}>{p.stock} pzs</div>
                 </div>
               </div>
-              <div style={{ textAlign: 'right', flex: 'none', width: 90 }}>
-                <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 17, color: C.pinkDeep }}>{formatMoney(p.price)}</div>
-                <div style={{ fontSize: 12, color: p.stock <= 5 ? C.amber : C.mutedSoft, fontWeight: 600 }}>{p.stock} pzs</div>
+              <div className="cap-list-actions">
+                <button onClick={() => toggleActive(p)} title={p.active ? 'Visible en catálogo' : 'Oculto'} style={{ ...pillBtn, background: p.active ? '#E8F7EF' : '#F3EDF0', color: p.active ? C.green : C.muted, border: 'none' }}>
+                  {p.active ? 'Visible' : 'Oculto'}
+                </button>
+                <button onClick={() => setEditing(p)} style={iconBtn}>Editar</button>
+                <button onClick={() => printLabel(p)} style={iconBtn}>QR</button>
+                <button onClick={() => remove(p)} style={{ ...iconBtn, color: C.red }}>✕</button>
               </div>
-              <button onClick={() => toggleActive(p)} title={p.active ? 'Visible en catálogo' : 'Oculto'} style={{ ...pillBtn, background: p.active ? '#E8F7EF' : '#F3EDF0', color: p.active ? C.green : C.muted, border: 'none' }}>
-                {p.active ? 'Visible' : 'Oculto'}
-              </button>
-              <button onClick={() => setEditing(p)} style={iconBtn}>Editar</button>
-              <button onClick={() => printLabel(p)} style={iconBtn}>QR</button>
-              <button onClick={() => remove(p)} style={{ ...iconBtn, color: C.red }}>✕</button>
             </div>
           )
         })}

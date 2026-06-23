@@ -80,22 +80,24 @@ export default function Inventory() {
           const cat = categoryById(p.category)
           const low = p.stock <= LOW_STOCK
           return (
-            <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 14, background: C.white, border: `1px solid ${low ? '#F6E2BE' : C.border}`, borderRadius: 16, padding: '12px 16px', boxShadow: shadow.sm }}>
-              <div style={{ width: 46, height: 46, flex: 'none', borderRadius: 12, background: p.imageUrl ? `url(${p.imageUrl}) center/cover` : gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
-                {!p.imageUrl && (cat?.emoji ?? '🎀')}
+            <div key={p.id} className="cap-list-row" style={{ background: C.white, border: `1px solid ${low ? '#F6E2BE' : C.border}`, borderRadius: 16, padding: '12px 16px', boxShadow: shadow.sm }}>
+              <div className="cap-list-main">
+                <div style={{ width: 46, height: 46, flex: 'none', borderRadius: 12, background: p.imageUrl ? `url(${p.imageUrl}) center/cover` : gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+                  {!p.imageUrl && (cat?.emoji ?? '🎀')}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{p.name}</div>
+                  <div style={{ fontSize: 12.5, color: C.muted }}><span style={{ fontFamily: 'monospace', color: C.pinkSoft }}>{p.sku}</span> · {cat?.label}</div>
+                </div>
+                {low && <span style={{ fontSize: 12, fontWeight: 700, color: C.amber, background: '#FFF4E2', padding: '5px 10px', borderRadius: 999, flex: 'none' }}>Stock bajo</span>}
               </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{p.name}</div>
-                <div style={{ fontSize: 12.5, color: C.muted }}><span style={{ fontFamily: 'monospace', color: C.pinkSoft }}>{p.sku}</span> · {cat?.label}</div>
-              </div>
-              {low && <span style={{ fontSize: 12, fontWeight: 700, color: C.amber, background: '#FFF4E2', padding: '5px 10px', borderRadius: 999 }}>Stock bajo</span>}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="cap-list-actions" style={{ justifyContent: 'flex-end' }}>
                 <button onClick={() => adjust(p, -1)} style={stepBtn}>−</button>
                 <input
                   type="number"
                   value={p.stock}
                   onChange={(e) => setExact(p, Number(e.target.value))}
-                  style={{ width: 60, textAlign: 'center', border: `1px solid ${C.borderSoft}`, borderRadius: 10, padding: '8px 4px', fontWeight: 700, fontSize: 15, color: C.text, outline: 'none' }}
+                  style={{ width: 60, textAlign: 'center', border: `1px solid ${C.borderSoft}`, borderRadius: 10, padding: '8px 4px', fontWeight: 700, fontSize: 15, color: C.text, outline: 'none', flex: 'none' }}
                 />
                 <button onClick={() => adjust(p, 1)} style={stepBtn}>+</button>
               </div>
@@ -118,6 +120,6 @@ function Stat({ label, value, accent }: { label: string; value: string; accent?:
 }
 
 const stepBtn: React.CSSProperties = {
-  width: 36, height: 36, borderRadius: 11, border: `1px solid ${C.border}`, background: C.white,
+  width: 36, height: 36, flex: 'none', borderRadius: 11, border: `1px solid ${C.border}`, background: C.white,
   color: C.pinkDeep, fontWeight: 700, fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center',
 }
