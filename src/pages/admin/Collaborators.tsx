@@ -5,8 +5,9 @@ import {
   ALL_PERMISSIONS, PERMISSION_META, ROLE_PRESETS, permissionsLabel, presetFromPermissions, type Permission,
 } from '../../lib/permissions'
 import { useToast } from '../../components/Toast'
+import { Modal } from '../../components/Modal'
 import { Spinner } from './Products'
-import { C, font, gradient, shadow } from '../../theme'
+import { C, gradient, shadow } from '../../theme'
 
 export default function Collaborators() {
   const toast = useToast()
@@ -130,80 +131,74 @@ function StaffModal({ member, onClose, onSaved }: { member?: StaffMember; onClos
   }
 
   return (
-    <div className="cap-modal-overlay" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="cap-pop cap-modal">
-        <div className="cap-modal-header">
-          <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 20, color: C.text }}>
-            {isEdit ? 'Editar colaborador' : 'Nuevo colaborador'}
-          </div>
-        </div>
-
-        <div className="cap-modal-body">
-          <Field label="Nombre *">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. María López" style={inputStyle} />
-          </Field>
-
-          <Field label="Correo *">
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isEdit} placeholder="colaborador@correo.com" style={{ ...inputStyle, opacity: isEdit ? 0.7 : 1 }} />
-          </Field>
-
-          <Field label={isEdit ? 'Nueva contraseña (opcional)' : 'Contraseña *'}>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isEdit ? 'Dejar vacío para no cambiar' : 'Mínimo 6 caracteres'} style={inputStyle} />
-          </Field>
-
-          {isEdit && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, cursor: 'pointer' }}>
-              <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} style={{ width: 18, height: 18, accentColor: C.pink }} />
-              <span style={{ fontSize: 14, fontWeight: 600 }}>Cuenta activa (puede iniciar sesión)</span>
-            </label>
-          )}
-
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: C.pinkSoft, marginBottom: 8 }}>Rol rápido</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
-            {ROLE_PRESETS.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => applyPreset(r.id)}
-                style={{
-                  padding: '8px 14px', borderRadius: 999, fontWeight: 700, fontSize: 13,
-                  border: `1px solid ${!useCustom && preset === r.id ? 'transparent' : C.border}`,
-                  background: !useCustom && preset === r.id ? gradient.brand : C.white,
-                  color: !useCustom && preset === r.id ? '#fff' : C.pinkSoft,
-                }}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ fontSize: 12.5, fontWeight: 700, color: C.pinkSoft, marginBottom: 8 }}>Permisos personalizados</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {ALL_PERMISSIONS.map((p) => (
-              <label key={p} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', background: C.bg, borderRadius: 12, padding: '10px 12px', border: `1px solid ${custom.includes(p) && useCustom ? C.pink : C.border}` }}>
-                <input
-                  type="checkbox"
-                  checked={useCustom ? custom.includes(p) : (ROLE_PRESETS.find((r) => r.id === preset)?.permissions.includes(p) ?? false) || preset === 'admin'}
-                  onChange={() => togglePerm(p)}
-                  style={{ width: 18, height: 18, accentColor: C.pink, marginTop: 2, flex: 'none' }}
-                />
-                <span>
-                  <span style={{ display: 'block', fontWeight: 700, fontSize: 14, color: C.text }}>{PERMISSION_META[p].label}</span>
-                  <span style={{ fontSize: 12.5, color: C.muted }}>{PERMISSION_META[p].desc}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="cap-modal-footer">
-          <button onClick={save} disabled={busy} style={{ background: gradient.brand, color: '#fff', border: 'none', borderRadius: 12, padding: '11px 22px', fontWeight: 700, boxShadow: shadow.btn }}>
+    <Modal
+      title={isEdit ? 'Editar colaborador' : 'Nuevo colaborador'}
+      onClose={onClose}
+      footer={(
+        <>
+          <button onClick={save} disabled={busy} style={{ background: gradient.brand, color: '#fff', border: 'none', borderRadius: 12, padding: '11px 22px', fontWeight: 700, boxShadow: shadow.btn, flex: 1, minWidth: 140 }}>
             {busy ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear colaborador'}
           </button>
-          <button onClick={onClose} style={{ background: C.white, color: C.pinkSoft, border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 20px', fontWeight: 700 }}>Cancelar</button>
-        </div>
+          <button onClick={onClose} style={{ background: C.white, color: C.pinkSoft, border: `1px solid ${C.border}`, borderRadius: 12, padding: '11px 20px', fontWeight: 700, flex: 1, minWidth: 100 }}>Cancelar</button>
+        </>
+      )}
+    >
+      <Field label="Nombre *">
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej. María López" style={inputStyle} />
+      </Field>
+
+      <Field label="Correo *">
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isEdit} placeholder="colaborador@correo.com" style={{ ...inputStyle, opacity: isEdit ? 0.7 : 1 }} />
+      </Field>
+
+      <Field label={isEdit ? 'Nueva contraseña (opcional)' : 'Contraseña *'}>
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={isEdit ? 'Dejar vacío para no cambiar' : 'Mínimo 6 caracteres'} style={inputStyle} />
+      </Field>
+
+      {isEdit && (
+        <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, cursor: 'pointer' }}>
+          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} style={{ width: 18, height: 18, accentColor: C.pink }} />
+          <span style={{ fontSize: 14, fontWeight: 600 }}>Cuenta activa (puede iniciar sesión)</span>
+        </label>
+      )}
+
+      <div style={{ fontSize: 12.5, fontWeight: 700, color: C.pinkSoft, marginBottom: 8 }}>Rol rápido</div>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 16 }}>
+        {ROLE_PRESETS.map((r) => (
+          <button
+            key={r.id}
+            type="button"
+            onClick={() => applyPreset(r.id)}
+            style={{
+              padding: '8px 14px', borderRadius: 999, fontWeight: 700, fontSize: 13,
+              border: `1px solid ${!useCustom && preset === r.id ? 'transparent' : C.border}`,
+              background: !useCustom && preset === r.id ? gradient.brand : C.white,
+              color: !useCustom && preset === r.id ? '#fff' : C.pinkSoft,
+            }}
+          >
+            {r.label}
+          </button>
+        ))}
       </div>
-    </div>
+
+      <div style={{ fontSize: 12.5, fontWeight: 700, color: C.pinkSoft, marginBottom: 8 }}>Permisos personalizados</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingBottom: 8 }}>
+        {ALL_PERMISSIONS.map((p) => (
+          <label key={p} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', background: C.bg, borderRadius: 12, padding: '10px 12px', border: `1px solid ${custom.includes(p) && useCustom ? C.pink : C.border}` }}>
+            <input
+              type="checkbox"
+              checked={useCustom ? custom.includes(p) : (ROLE_PRESETS.find((r) => r.id === preset)?.permissions.includes(p) ?? false) || preset === 'admin'}
+              onChange={() => togglePerm(p)}
+              style={{ width: 18, height: 18, accentColor: C.pink, marginTop: 2, flex: 'none' }}
+            />
+            <span>
+              <span style={{ display: 'block', fontWeight: 700, fontSize: 14, color: C.text }}>{PERMISSION_META[p].label}</span>
+              <span style={{ fontSize: 12.5, color: C.muted }}>{PERMISSION_META[p].desc}</span>
+            </span>
+          </label>
+        ))}
+      </div>
+    </Modal>
   )
 }
 
