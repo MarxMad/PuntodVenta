@@ -106,3 +106,33 @@ input::placeholder, textarea::placeholder { color: #C9A8B8; }
   .cap-admin-content { padding: 0 !important; }
   body { background: #fff; }
 }
+
+/* ── Modales con scroll interno ─────────────────────────────────────── */
+.cap-modal-overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(74, 63, 74, .35); backdrop-filter: blur(3px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px 16px;
+  overflow-y: auto;
+}
+.cap-modal {
+  background: #fff; border-radius: 22px; width: 100%; max-width: 520px;
+  max-height: min(90vh, calc(100dvh - 32px));
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 24px 64px rgba(74, 63, 74, .18);
+  margin: auto 0;
+}
+.cap-modal-header {
+  flex: none; padding: 22px 26px 0;
+}
+.cap-modal-body {
+  flex: 1; min-height: 0; overflow-y: auto;
+  padding: 16px 26px;
+  -webkit-overflow-scrolling: touch;
+}
+.cap-modal-footer {
+  flex: none; padding: 14px 26px 22px;
+  border-top: 1px solid #F4E3EC;
+  background: #fff;
+  display: flex; gap: 10px; flex-wrap: wrap;
+}

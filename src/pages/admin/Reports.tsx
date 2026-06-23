@@ -3,6 +3,8 @@ import { db } from '../../lib/db'
 import type { Collection, Product, Sale } from '../../lib/types'
 import { computeIncomeStatement, type ReportPeriod } from '../../lib/reports'
 import { formatMoney, formatDate } from '../../lib/format'
+import { printLabelSheet } from '../../lib/print'
+import { categoryById } from '../../lib/categories'
 import { Spinner } from './Products'
 import { C, font, gradient, shadow } from '../../theme'
 
@@ -20,10 +22,18 @@ export default function Reports() {
   const [collections, setCollections] = useState<Collection[]>([])
   const [loading, setLoading] = useState(true)
   const [period, setPeriod] = useState<ReportPeriod>('month')
+  const [qrSearch, setQrSearch] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [printing, setPrinting] = useState(false)
 
   useEffect(() => {
     Promise.all([db.listProducts(), db.listSales(), db.listCollections()])
-      .then(([p, s, c]) => { setProducts(p); setSales(s); setCollections(c) })
+      .then(([p, s, c]) => {
+        setProducts(p)
+        setSales(s)
+        setCollections(c)
+        setSelected(new Set(p.map((x) => x.id)))
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -31,6 +41,48 @@ export default function Reports() {
     () => computeIncomeStatement(sales, products, collections, period),
     [sales, products, collections, period],
   )
+
+  const filteredProducts = useMemo(() => {
+    const q = qrSearch.trim().toLowerCase()
+    if (!q) return products
+    return products.filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q))
+  }, [products, qrSearch])
+
+  const selectedProducts = useMemo(
+    () => products.filter((p) => selected.has(p.id)),
+    [products, selected],
+  )
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function selectAll() {
+    setSelected(new Set(filteredProducts.map((p) => p.id)))
+  }
+
+  function selectNone() {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      for (const p of filteredProducts) next.delete(p.id)
+      return next
+    })
+  }
+
+  async function printQrSheet() {
+    if (selectedProducts.length === 0) return
+    setPrinting(true)
+    try {
+      await printLabelSheet(selectedProducts)
+    } finally {
+      setPrinting(false)
+    }
+  }
 
   if (loading) return <Spinner />
 
@@ -90,13 +142,90 @@ export default function Reports() {
         <Snapshot title="Piezas por venta" value={report.saleCount ? (report.unitsSold / report.saleCount).toFixed(1) : '0'} sub="promedio en el periodo" />
       </div>
 
-      <div style={{ fontSize: 13, color: C.muted, background: C.bg, borderRadius: 14, padding: '14px 16px', lineHeight: 1.5 }}>
+      <div style={{ fontSize: 13, color: C.muted, background: C.bg, borderRadius: 14, padding: '14px 16px', lineHeight: 1.5, marginBottom: 28 }}>
         <b>Nota:</b> el costo de mercancía se calcula con el costo actual de cada producto.
         Si cambias el costo después de vender, el reporte histórico puede variar ligeramente.
-        Para un margen exacto, registra el costo al momento de cada venta (mejora futura).
+      </div>
+
+      {/* Etiquetas QR en hoja */}
+      <div style={{ background: C.white, borderRadius: 22, border: `1px solid ${C.border}`, boxShadow: shadow.card, padding: 24 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', gap: 12, marginBottom: 16 }}>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontWeight: 700, fontSize: 16, color: C.text }}>Etiquetas QR en hoja</div>
+            <div style={{ fontSize: 13, color: C.muted, marginTop: 4 }}>
+              Imprime todos los códigos juntos, 4 por fila, listos para recortar y pegar.
+            </div>
+          </div>
+          <button
+            onClick={printQrSheet}
+            disabled={printing || selectedProducts.length === 0}
+            style={{
+              padding: '11px 18px', borderRadius: 13, fontWeight: 700, fontSize: 14,
+              border: 'none', background: gradient.brand, color: '#fff', boxShadow: shadow.btn,
+              opacity: selectedProducts.length === 0 ? 0.55 : 1,
+            }}
+          >
+            {printing ? 'Preparando…' : `🖨️ Imprimir ${selectedProducts.length} etiqueta${selectedProducts.length === 1 ? '' : 's'}`}
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 14 }}>
+          <input
+            value={qrSearch}
+            onChange={(e) => setQrSearch(e.target.value)}
+            placeholder="Buscar producto o SKU…"
+            style={{ flex: '1 1 200px', border: `1px solid ${C.borderSoft}`, borderRadius: 12, padding: '10px 14px', fontSize: 14, outline: 'none' }}
+          />
+          <button onClick={selectAll} style={chipBtn}>Seleccionar todos</button>
+          <button onClick={selectNone} style={chipBtn}>Quitar selección</button>
+        </div>
+
+        {products.length === 0 ? (
+          <div style={{ textAlign: 'center', color: C.muted, padding: '32px 0', fontSize: 14 }}>
+            Aún no hay productos. Da de alta productos para imprimir sus QR.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto' }}>
+            {filteredProducts.map((p) => {
+              const cat = categoryById(p.category)
+              const checked = selected.has(p.id)
+              return (
+                <label
+                  key={p.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer',
+                    background: checked ? '#FFF8FB' : C.bg, border: `1px solid ${checked ? C.pink : C.border}`,
+                    borderRadius: 14, padding: '10px 14px',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggle(p.id)}
+                    style={{ width: 18, height: 18, accentColor: C.pink, flex: 'none' }}
+                  />
+                  <span style={{ fontSize: 20, flex: 'none' }}>{cat?.emoji}</span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{p.name}</div>
+                    <div style={{ fontSize: 12, color: C.muted, fontFamily: 'monospace' }}>{p.sku}</div>
+                  </div>
+                  <div style={{ fontWeight: 700, color: C.pinkDeep, fontSize: 14, flex: 'none' }}>{formatMoney(p.price)}</div>
+                </label>
+              )
+            })}
+            {filteredProducts.length === 0 && (
+              <div style={{ textAlign: 'center', color: C.muted, padding: 24 }}>Sin resultados.</div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
+}
+
+const chipBtn: React.CSSProperties = {
+  padding: '9px 14px', borderRadius: 12, fontWeight: 700, fontSize: 13,
+  border: `1px solid ${C.border}`, background: C.white, color: C.pinkSoft,
 }
 
 function StatementRow({ label, value, bold, muted, accent, divider }: {
