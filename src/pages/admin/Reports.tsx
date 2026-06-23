@@ -4,9 +4,9 @@ import type { Collection, Product, Sale } from '../../lib/types'
 import { computeIncomeStatement, type ReportPeriod } from '../../lib/reports'
 import { formatMoney, formatDate } from '../../lib/format'
 import { printLabelSheet } from '../../lib/print'
-import { categoryById } from '../../lib/categories'
 import { Spinner } from './Products'
 import { C, font, gradient, shadow } from '../../theme'
+import { CategoryIcon, IconText } from '../../components/Icon'
 
 const PERIODS: { id: ReportPeriod; label: string }[] = [
   { id: 'today', label: 'Hoy' },
@@ -108,9 +108,9 @@ export default function Reports() {
         ))}
         <button
           onClick={() => window.print()}
-          style={{ marginLeft: 'auto', padding: '9px 16px', borderRadius: 12, fontWeight: 700, fontSize: 13.5, border: `1px solid ${C.border}`, background: C.white, color: C.pinkSoft }}
+          style={{ marginLeft: 'auto', padding: '9px 16px', borderRadius: 12, fontWeight: 700, fontSize: 13.5, border: `1px solid ${C.border}`, background: C.white, color: C.pinkSoft, display: 'inline-flex', alignItems: 'center', gap: 7 }}
         >
-          🖨️ Imprimir
+          <IconText icon="printer" size={15} color={C.pinkSoft}>Imprimir</IconText>
         </button>
       </div>
 
@@ -163,9 +163,14 @@ export default function Reports() {
               padding: '11px 18px', borderRadius: 13, fontWeight: 700, fontSize: 14,
               border: 'none', background: gradient.brand, color: '#fff', boxShadow: shadow.btn,
               opacity: selectedProducts.length === 0 ? 0.55 : 1,
+              display: 'inline-flex', alignItems: 'center', gap: 8,
             }}
           >
-            {printing ? 'Preparando…' : `🖨️ Imprimir ${selectedProducts.length} etiqueta${selectedProducts.length === 1 ? '' : 's'}`}
+            {printing ? 'Preparando…' : (
+              <IconText icon="printer" size={16} color="#fff">
+                {`Imprimir ${selectedProducts.length} etiqueta${selectedProducts.length === 1 ? '' : 's'}`}
+              </IconText>
+            )}
           </button>
         </div>
 
@@ -187,7 +192,6 @@ export default function Reports() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 420, overflowY: 'auto' }}>
             {filteredProducts.map((p) => {
-              const cat = categoryById(p.category)
               const checked = selected.has(p.id)
               return (
                 <label
@@ -204,7 +208,7 @@ export default function Reports() {
                     onChange={() => toggle(p.id)}
                     style={{ width: 18, height: 18, accentColor: C.pink, flex: 'none' }}
                   />
-                  <span style={{ fontSize: 20, flex: 'none' }}>{cat?.emoji}</span>
+                  <CategoryIcon categoryId={p.category} size={20} color={C.pinkSoft} style={{ flex: 'none' }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{p.name}</div>
                     <div style={{ fontSize: 12, color: C.muted, fontFamily: 'monospace' }}>{p.sku}</div>

@@ -8,11 +8,11 @@ import { useResult } from '../../components/ResultModal'
 import { QRCode } from '../../components/QRCode'
 import { ImagePicker, type ImageValue } from '../../components/ImagePicker'
 import { uploadProductImage } from '../../lib/storage'
-import { categoryById } from '../../lib/categories'
 import { printLabel } from '../../lib/print'
 import { ADMIN_BASE } from '../../config'
 import { formatMoney } from '../../lib/format'
 import { C, font, gradient, shadow } from '../../theme'
+import { Icon } from '../../components/Icon'
 
 export default function AddProduct() {
   const nav = useNavigate()
@@ -76,7 +76,10 @@ export default function AddProduct() {
             </div>
           </div>
           <div style={{ flex: 1, minWidth: 240 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: C.green, marginBottom: 6 }}>✅ Producto creado</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.green, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="check" size={16} color={C.green} strokeWidth={2.5} />
+              Producto creado
+            </div>
             <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 24, color: C.text }}>{created.name}</div>
             <div style={{ display: 'inline-block', marginTop: 10, fontFamily: 'monospace', fontWeight: 700, fontSize: 16, color: C.pinkDeep, background: C.card1, padding: '6px 12px', borderRadius: 10, letterSpacing: '1px' }}>
               {created.sku}
@@ -85,7 +88,10 @@ export default function AddProduct() {
             <div style={{ fontSize: 13.5, color: C.muted, marginTop: 2 }}>{created.stock} piezas en stock</div>
 
             <div style={{ display: 'flex', gap: 10, marginTop: 22, flexWrap: 'wrap' }}>
-              <button onClick={() => printLabel(created)} style={primaryBtn}>🖨️ Imprimir etiqueta QR</button>
+              <button onClick={() => printLabel(created)} style={{ ...primaryBtn, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                <Icon name="printer" size={17} color="#fff" />
+                Imprimir etiqueta QR
+              </button>
               <button onClick={() => { setCreated(null); setImage({ file: null, url: null }); setForm({ name: '', category: form.category, description: '', price: '', cost: '', stock: '', active: true }) }} style={ghostBtn}>
                 + Crear otro
               </button>
@@ -108,7 +114,7 @@ export default function AddProduct() {
           <Field label="Categoría *">
             <select value={form.category} onChange={(e) => set('category', e.target.value)} style={inputStyle}>
               {CATEGORIES.map((c) => (
-                <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>
+                <option key={c.id} value={c.id}>{c.label}</option>
               ))}
             </select>
           </Field>
@@ -132,7 +138,7 @@ export default function AddProduct() {
 
         <div style={{ marginBottom: 16 }}>
           <span style={{ display: 'block', fontSize: 13, fontWeight: 700, color: C.pinkSoft, marginBottom: 6 }}>Foto del producto</span>
-          <ImagePicker value={image} onChange={setImage} emoji={categoryById(form.category)?.emoji} />
+          <ImagePicker value={image} onChange={setImage} categoryId={form.category} />
         </div>
 
         <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6, cursor: 'pointer' }}>
@@ -140,8 +146,9 @@ export default function AddProduct() {
           <span style={{ fontSize: 14, fontWeight: 600, color: C.text }}>Mostrar en el catálogo público</span>
         </label>
 
-        <div style={{ fontSize: 13, color: C.muted, marginTop: 18, background: C.bg, borderRadius: 12, padding: '12px 14px' }}>
-          🔖 El <b>SKU</b> y el <b>código QR</b> se generan automáticamente al guardar.
+        <div style={{ fontSize: 13, color: C.muted, marginTop: 18, background: C.bg, borderRadius: 12, padding: '12px 14px', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+          <Icon name="tag" size={16} color={C.pinkSoft} style={{ marginTop: 1, flexShrink: 0 }} />
+          <span>El <b>SKU</b> y el <b>código QR</b> se generan automáticamente al guardar.</span>
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginTop: 22 }}>

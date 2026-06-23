@@ -4,6 +4,7 @@ import { formatMoney } from '../../../lib/format'
 import { emailReceipt, printReceipt } from '../../../lib/print'
 import { Modal } from '../../../components/Modal'
 import { C, font, gradient, shadow } from '../../../theme'
+import { Icon, StatusBadge } from '../../../components/Icon'
 
 /** Pantalla de confirmación tras cobrar: imprimir o enviar el ticket por correo. */
 export default function SaleConfirmedModal({ sale, onClose }: { sale: Sale; onClose: () => void }) {
@@ -25,8 +26,8 @@ export default function SaleConfirmedModal({ sale, onClose }: { sale: Sale; onCl
       }
     >
       <div style={{ textAlign: 'center', marginBottom: 22 }}>
-        <div style={{ width: 76, height: 76, borderRadius: '50%', margin: '0 auto 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, background: '#E8F7EF' }}>
-          ✅
+        <div style={{ margin: '0 auto 14px', display: 'flex', justifyContent: 'center' }}>
+          <StatusBadge kind="ok" size={34} />
         </div>
         <div style={{ fontSize: 14, color: C.muted }}>Venta registrada por</div>
         <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 38, color: C.pinkDeep, marginTop: 2 }}>
@@ -41,7 +42,9 @@ export default function SaleConfirmedModal({ sale, onClose }: { sale: Sale; onCl
         onClick={() => { printReceipt(sale); setPrinted(true) }}
         style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: '14px 16px', marginBottom: 12, textAlign: 'left' }}
       >
-        <span style={{ fontSize: 24 }}>🖨️</span>
+        <span style={{ width: 40, height: 40, borderRadius: 12, background: C.white, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Icon name="printer" size={22} color={C.pinkSoft} />
+        </span>
         <span style={{ flex: 1 }}>
           <span style={{ display: 'block', fontWeight: 700, fontSize: 15, color: C.text }}>Imprimir ticket</span>
           <span style={{ fontSize: 12.5, color: C.muted }}>{printed ? 'Abierto para imprimir ✓' : 'Abre la ventana de impresión'}</span>
@@ -50,7 +53,9 @@ export default function SaleConfirmedModal({ sale, onClose }: { sale: Sale; onCl
 
       <div style={{ background: C.bg, border: `1px solid ${C.border}`, borderRadius: 14, padding: '14px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
-          <span style={{ fontSize: 24 }}>✉️</span>
+          <span style={{ width: 40, height: 40, borderRadius: 12, background: C.white, border: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Icon name="mail" size={22} color={C.pinkSoft} />
+          </span>
           <span style={{ flex: 1 }}>
             <span style={{ display: 'block', fontWeight: 700, fontSize: 15, color: C.text }}>Enviar por correo</span>
             <span style={{ fontSize: 12.5, color: C.muted }}>{sent ? 'Se abrió tu app de correo ✓' : 'Se abre tu correo con el ticket escrito'}</span>

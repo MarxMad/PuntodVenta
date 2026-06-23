@@ -10,6 +10,7 @@ import { QRCode } from '../../components/QRCode'
 import { ImagePicker, type ImageValue } from '../../components/ImagePicker'
 import { uploadProductImage } from '../../lib/storage'
 import { C, font, gradient, shadow } from '../../theme'
+import { CategoryIcon, Icon, IconText } from '../../components/Icon'
 
 export default function Products() {
   const result = useResult()
@@ -63,7 +64,7 @@ export default function Products() {
             <div key={p.id} className="cap-list-row" style={rowStyle}>
               <div className="cap-list-main">
                 <div style={{ width: 52, height: 52, flex: 'none', borderRadius: 13, background: p.imageUrl ? `url(${p.imageUrl}) center/cover` : gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>
-                  {!p.imageUrl && (cat?.emoji ?? '🎀')}
+                  {!p.imageUrl && <CategoryIcon categoryId={p.category} size={26} color={C.pinkSoft} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{p.name}</div>
@@ -82,7 +83,9 @@ export default function Products() {
                 </button>
                 <button onClick={() => setEditing(p)} style={iconBtn}>Editar</button>
                 <button onClick={() => printLabel(p)} style={iconBtn}>QR</button>
-                <button onClick={() => remove(p)} style={{ ...iconBtn, color: C.red }}>✕</button>
+                <button onClick={() => remove(p)} style={{ ...iconBtn, color: C.red, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '7px 9px' }} aria-label="Eliminar">
+                  <Icon name="x" size={16} color={C.red} strokeWidth={2.5} />
+                </button>
               </div>
             </div>
           )
@@ -146,7 +149,9 @@ function EditModal({ product, onClose, onSaved }: { product: Product; onClose: (
         </div>
         <div style={{ minWidth: 0 }}>
           <div style={{ fontFamily: 'monospace', fontSize: 13, color: C.pinkSoft }}>{product.sku}</div>
-          <button type="button" onClick={() => printLabel(product)} style={{ ...iconBtn, marginTop: 8 }}>🖨️ Imprimir QR</button>
+          <button type="button" onClick={() => printLabel(product)} style={{ ...iconBtn, marginTop: 8, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+            <IconText icon="printer" size={15} color={C.pinkSoft}>Imprimir QR</IconText>
+          </button>
         </div>
       </div>
 
@@ -154,7 +159,7 @@ function EditModal({ product, onClose, onSaved }: { product: Product; onClose: (
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         <Field label="Categoría">
           <select value={form.category} onChange={(e) => set('category', e.target.value)} style={inputStyle}>
-            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>)}
+            {CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
           </select>
         </Field>
         <Field label="Stock"><input type="number" min="0" value={form.stock} onChange={(e) => set('stock', e.target.value)} style={inputStyle} /></Field>
@@ -166,7 +171,7 @@ function EditModal({ product, onClose, onSaved }: { product: Product; onClose: (
       </div>
       <div style={{ marginBottom: 14 }}>
         <span style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: C.pinkSoft, marginBottom: 5 }}>Foto del producto</span>
-        <ImagePicker value={image} onChange={setImage} emoji={categoryById(form.category)?.emoji} />
+        <ImagePicker value={image} onChange={setImage} categoryId={form.category} />
       </div>
       <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
         <input type="checkbox" checked={form.active} onChange={(e) => set('active', e.target.checked)} style={{ width: 18, height: 18, accentColor: C.pink }} />
@@ -192,7 +197,7 @@ export function Spinner() {
 function EmptyProducts() {
   return (
     <div style={{ textAlign: 'center', padding: '70px 20px', color: C.muted }}>
-      <div style={{ fontSize: 52 }}>🎀</div>
+      <Icon name="ribbon" size={52} color={C.pinkSoft} style={{ margin: '0 auto', opacity: 0.85 }} />
       <div style={{ fontWeight: 700, fontSize: 18, color: C.text, marginTop: 10 }}>Todavía no tienes productos</div>
       <div style={{ fontSize: 14, marginTop: 4 }}>Crea tu primer producto desde “Nuevo producto”.</div>
     </div>

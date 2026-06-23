@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { categoryById } from '../lib/categories'
+import type { CategoryIconName } from '../lib/categories'
 import { C, gradient, shadow } from '../theme'
+import { Icon, IconText } from './Icon'
 
 export interface ImageValue {
   file: File | null // foto nueva, aún sin guardar
@@ -9,10 +12,11 @@ export interface ImageValue {
 interface Props {
   value: ImageValue
   onChange: (v: ImageValue) => void
-  emoji?: string
+  categoryId?: string
 }
 
-export function ImagePicker({ value, onChange, emoji = '🎀' }: Props) {
+export function ImagePicker({ value, onChange, categoryId }: Props) {
+  const placeholderIcon: CategoryIconName = categoryById(categoryId ?? '')?.icon ?? 'ribbon'
   const fileRef = useRef<HTMLInputElement>(null)
   const [cameraOpen, setCameraOpen] = useState(false)
   const [preview, setPreview] = useState<string | null>(value.url)
@@ -47,22 +51,26 @@ export function ImagePicker({ value, onChange, emoji = '🎀' }: Props) {
           display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden',
         }}
       >
-        {!preview && <div style={{ fontSize: 46, opacity: 0.7 }}>{emoji}</div>}
+        {!preview && <Icon name={placeholderIcon} size={48} color={C.pinkSoft} style={{ opacity: 0.75 }} />}
         {preview && (
           <button
             type="button"
             onClick={() => onChange({ file: null, url: null })}
             title="Quitar foto"
-            style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 999, border: 'none', background: 'rgba(74,63,74,.6)', color: '#fff', fontWeight: 700, fontSize: 15 }}
+            style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: 999, border: 'none', background: 'rgba(74,63,74,.6)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            ✕
+            <Icon name="x" size={16} color="#fff" strokeWidth={2.5} />
           </button>
         )}
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-        <button type="button" onClick={() => fileRef.current?.click()} style={btn}>🖼️ Subir foto</button>
-        <button type="button" onClick={() => setCameraOpen(true)} style={btn}>📷 Tomar foto</button>
+        <button type="button" onClick={() => fileRef.current?.click()} style={btn}>
+          <IconText icon="image" size={16} color={C.pinkSoft}>Subir foto</IconText>
+        </button>
+        <button type="button" onClick={() => setCameraOpen(true)} style={btn}>
+          <IconText icon="camera" size={16} color={C.pinkSoft}>Tomar foto</IconText>
+        </button>
       </div>
       <input ref={fileRef} type="file" accept="image/*" onChange={pickFromGallery} style={{ display: 'none' }} />
 
@@ -119,8 +127,9 @@ function CameraModal({ onCapture, onClose }: { onCapture: (f: File) => void; onC
         )}
         <div style={{ display: 'flex', gap: 10, marginTop: 14 }}>
           {!error && (
-            <button type="button" onClick={snap} style={{ flex: 1, background: gradient.brand, color: '#fff', border: 'none', borderRadius: 13, padding: '12px', fontWeight: 700, fontSize: 15, boxShadow: shadow.btn }}>
-              📸 Capturar
+            <button type="button" onClick={snap} style={{ flex: 1, background: gradient.brand, color: '#fff', border: 'none', borderRadius: 13, padding: '12px', fontWeight: 700, fontSize: 15, boxShadow: shadow.btn, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+              <Icon name="camera" size={18} color="#fff" />
+              Capturar
             </button>
           )}
           <button type="button" onClick={onClose} style={{ background: C.white, color: C.pinkSoft, border: `1px solid ${C.border}`, borderRadius: 13, padding: '12px 20px', fontWeight: 700 }}>Cancelar</button>

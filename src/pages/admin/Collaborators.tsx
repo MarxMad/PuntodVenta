@@ -9,6 +9,7 @@ import { useResult } from '../../components/ResultModal'
 import { Modal } from '../../components/Modal'
 import { Spinner } from './Products'
 import { C, gradient, shadow } from '../../theme'
+import { Icon } from '../../components/Icon'
 
 export default function Collaborators() {
   const toast = useToast()
@@ -41,7 +42,7 @@ export default function Collaborators() {
 
       {list.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '50px 20px', color: C.muted }}>
-          <div style={{ fontSize: 48 }}>👥</div>
+          <Icon name="users" size={48} color={C.pinkSoft} style={{ margin: '0 auto', opacity: 0.85 }} />
           <div style={{ fontWeight: 700, fontSize: 17, color: C.text, marginTop: 10 }}>Sin colaboradores registrados</div>
           <div style={{ fontSize: 14, marginTop: 4 }}>Agrega a tu equipo para que cobren o suban productos sin ver todo.</div>
         </div>
@@ -50,8 +51,8 @@ export default function Collaborators() {
           {list.map((s) => (
             <div key={s.id} style={{ background: C.white, border: `1px solid ${s.active ? C.border : '#F6E2BE'}`, borderRadius: 18, padding: '16px 20px', boxShadow: shadow.sm, opacity: s.active ? 1 : 0.75 }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, flexWrap: 'wrap' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 14, background: gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flex: 'none' }}>
-                  {s.active ? '👤' : '💤'}
+                <div style={{ width: 44, height: 44, borderRadius: 14, background: gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+                  <Icon name={s.active ? 'user' : 'moon'} size={22} color={C.pinkSoft} />
                 </div>
                 <div style={{ flex: 1, minWidth: 180 }}>
                   <div style={{ fontWeight: 700, fontSize: 16, color: C.text }}>{s.name}</div>

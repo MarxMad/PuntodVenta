@@ -8,6 +8,7 @@ import { useResult } from '../../components/ResultModal'
 import { Modal } from '../../components/Modal'
 import { Spinner } from './Products'
 import { C, font, gradient, shadow } from '../../theme'
+import { Icon } from '../../components/Icon'
 
 const STATUS_META: Record<Order['status'], { label: string; color: string; bg: string }> = {
   pendiente: { label: 'Pendiente', color: C.amber, bg: '#FFF4E2' },
@@ -63,7 +64,7 @@ export default function Orders() {
 
       {orders.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: C.muted }}>
-          <div style={{ fontSize: 48 }}>📦</div>
+          <Icon name="package" size={48} color={C.pinkSoft} style={{ margin: '0 auto', opacity: 0.85 }} />
           <div style={{ fontWeight: 700, fontSize: 17, color: C.text, marginTop: 10 }}>Sin pedidos todavía</div>
           <div style={{ fontSize: 14, marginTop: 4 }}>Crea un pedido a proveedor para reponer stock.</div>
         </div>

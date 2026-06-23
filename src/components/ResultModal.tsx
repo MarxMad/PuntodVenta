@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { C, font, gradient, shadow } from '../theme'
+import { StatusBadge } from './Icon'
 
 type ResultKind = 'ok' | 'error'
 
@@ -20,7 +21,7 @@ export interface ResultOpts {
 
 const ResultCtx = createContext<(opts: ResultOpts) => void>(() => {})
 
-/** Muestra una pantalla central de confirmación (✅) o error (⚠️). */
+/** Muestra una pantalla central de confirmación o error. */
 export function useResult() {
   return useContext(ResultCtx)
 }
@@ -49,14 +50,8 @@ export function ResultProvider({ children }: { children: ReactNode }) {
                 width: '100%', maxWidth: 380, textAlign: 'center', boxShadow: shadow.pop,
               }}
             >
-              <div
-                style={{
-                  width: 76, height: 76, borderRadius: '50%', margin: '0 auto 18px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40,
-                  background: isError ? '#FDECEF' : '#E8F7EF',
-                }}
-              >
-                {isError ? '⚠️' : '✅'}
+              <div style={{ margin: '0 auto 18px' }}>
+                <StatusBadge kind={isError ? 'error' : 'ok'} size={34} />
               </div>
               <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 21, color: C.text }}>
                 {result.title}

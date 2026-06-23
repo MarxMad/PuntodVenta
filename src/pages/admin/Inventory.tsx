@@ -6,6 +6,7 @@ import { formatMoney } from '../../lib/format'
 import { useResult } from '../../components/ResultModal'
 import { SearchBar, Spinner } from './Products'
 import { C, font, gradient, shadow } from '../../theme'
+import { CategoryIcon, IconText } from '../../components/Icon'
 
 const LOW_STOCK = 5
 
@@ -69,9 +70,9 @@ export default function Inventory() {
         <SearchBar value={search} onChange={setSearch} />
         <button
           onClick={() => setOnlyLow((v) => !v)}
-          style={{ marginBottom: 16, padding: '10px 15px', borderRadius: 12, fontWeight: 700, fontSize: 13.5, border: `1px solid ${onlyLow ? 'transparent' : C.border}`, background: onlyLow ? C.amber : C.white, color: onlyLow ? '#fff' : C.pinkSoft }}
+          style={{ marginBottom: 16, padding: '10px 15px', borderRadius: 12, fontWeight: 700, fontSize: 13.5, border: `1px solid ${onlyLow ? 'transparent' : C.border}`, background: onlyLow ? C.amber : C.white, color: onlyLow ? '#fff' : C.pinkSoft, display: 'inline-flex', alignItems: 'center', gap: 7 }}
         >
-          ⚠️ Solo stock bajo
+          <IconText icon="alert" size={15} color={onlyLow ? '#fff' : C.pinkSoft}>Solo stock bajo</IconText>
         </button>
       </div>
 
@@ -83,7 +84,7 @@ export default function Inventory() {
             <div key={p.id} className="cap-list-row" style={{ background: C.white, border: `1px solid ${low ? '#F6E2BE' : C.border}`, borderRadius: 16, padding: '12px 16px', boxShadow: shadow.sm }}>
               <div className="cap-list-main">
                 <div style={{ width: 46, height: 46, flex: 'none', borderRadius: 12, background: p.imageUrl ? `url(${p.imageUrl}) center/cover` : gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
-                  {!p.imageUrl && (cat?.emoji ?? '🎀')}
+                  {!p.imageUrl && <CategoryIcon categoryId={p.category} size={22} color={C.pinkSoft} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{p.name}</div>

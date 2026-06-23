@@ -4,11 +4,11 @@ import { db } from '../../lib/db'
 import type { Product, Sale } from '../../lib/types'
 import { aggregateProductSales, defaultRestockList, topSellers } from '../../lib/salesStats'
 import { type ReportPeriod } from '../../lib/reports'
-import { categoryById } from '../../lib/categories'
 import { ADMIN_BASE } from '../../config'
 import { formatMoney } from '../../lib/format'
 import { Spinner } from './Products'
 import { C, gradient, shadow } from '../../theme'
+import { CategoryIcon, IconText } from '../../components/Icon'
 
 const PERIODS: { id: ReportPeriod; label: string }[] = [
   { id: 'week', label: '7 días' },
@@ -123,13 +123,12 @@ export default function Restock() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {leaders.map((s, i) => {
-              const cat = categoryById(s.category)
               const pct = Math.round((s.unitsSold / maxUnits) * 100)
               return (
                 <div key={s.productId}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
                     <span style={{ width: 22, fontWeight: 800, fontSize: 13, color: i < 3 ? C.pinkDeep : C.muted }}>#{i + 1}</span>
-                    <span style={{ fontSize: 18 }}>{cat?.emoji}</span>
+                    <CategoryIcon categoryId={s.category} size={18} color={C.pinkSoft} />
                     <span style={{ flex: 1, fontWeight: 700, fontSize: 14, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{s.name}</span>
                     <span style={{ fontWeight: 700, fontSize: 14, color: C.pinkDeep }}>{s.unitsSold} pzs</span>
                     <span style={{ fontSize: 12.5, color: C.muted, minWidth: 72, textAlign: 'right' }}>{formatMoney(s.revenue)}</span>
@@ -159,7 +158,7 @@ export default function Restock() {
               disabled={picked.length === 0}
               style={{ padding: '10px 16px', borderRadius: 12, fontWeight: 700, fontSize: 13.5, border: `1px solid ${C.border}`, background: C.white, color: C.pinkSoft }}
             >
-              🖨️ Imprimir lista
+              <IconText icon="printer" size={15} color={C.pinkSoft}>Imprimir lista</IconText>
             </button>
             <button
               onClick={createOrder}
@@ -173,7 +172,6 @@ export default function Restock() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {stats.filter((s) => s.unitsSold > 0).map((s) => {
-            const cat = categoryById(s.category)
             const checked = (pick[s.productId] ?? 0) > 0
             const low = s.stock <= 5
             return (
@@ -191,7 +189,7 @@ export default function Restock() {
                   onChange={() => toggle(s.productId, s.suggestedQty)}
                   style={{ width: 18, height: 18, accentColor: C.pink, flex: 'none' }}
                 />
-                <span style={{ fontSize: 20, flex: 'none' }}>{cat?.emoji}</span>
+                <CategoryIcon categoryId={s.category} size={20} color={C.pinkSoft} style={{ flex: 'none' }} />
                 <div style={{ flex: '1 1 140px', minWidth: 0 }}>
                   <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{s.name}</div>
                   <div style={{ fontSize: 12, color: C.muted }}>

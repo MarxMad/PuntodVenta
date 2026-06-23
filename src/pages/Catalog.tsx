@@ -5,6 +5,7 @@ import { CATEGORIES, categoryById } from '../lib/categories'
 import { formatMoney } from '../lib/format'
 import { STORE } from '../config'
 import { C, font, gradient, shadow } from '../theme'
+import { CategoryIcon, Icon, type IconName } from '../components/Icon'
 
 export default function Catalog() {
   const [products, setProducts] = useState<Product[]>([])
@@ -59,8 +60,9 @@ export default function Catalog() {
             <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 30, color: C.pinkDeep }}>
               {STORE.name}
             </div>
-            <div style={{ fontSize: 14, color: C.muted, fontWeight: 600 }}>
+            <div style={{ fontSize: 14, color: C.muted, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
               {STORE.tagline}
+              <Icon name="flower" size={15} color={C.pinkSoft} />
             </div>
           </div>
         </div>
@@ -88,9 +90,12 @@ export default function Catalog() {
 
         {/* Filtro de categorías */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 24 }}>
-          <Chip label="Todos" active={cat === 'todos'} onClick={() => setCat('todos')} />
+          <Chip active={cat === 'todos'} onClick={() => setCat('todos')}>Todos</Chip>
           {activeCats.map((c) => (
-            <Chip key={c.id} label={`${c.emoji} ${c.label}`} active={cat === c.id} onClick={() => setCat(c.id)} />
+            <Chip key={c.id} active={cat === c.id} onClick={() => setCat(c.id)}>
+              <CategoryIcon categoryId={c.id} size={14} color={cat === c.id ? '#fff' : C.pinkSoft} />
+              {c.label}
+            </Chip>
           ))}
         </div>
 
@@ -138,9 +143,9 @@ function Footer() {
         {hasContact && (
           <div style={{ flex: '1 1 200px' }}>
             <div style={colTitle}>Contacto</div>
-            {s.email && <FooterLink href={`mailto:${s.email}`} icon="✉️" text={s.email} />}
-            {s.whatsapp && <FooterLink href={waLink} icon="💬" text="Escríbenos por WhatsApp" />}
-            {s.phone && <FooterLink href={`tel:${s.phone.replace(/\s/g, '')}`} icon="📞" text={s.phone} />}
+            {s.email && <FooterLink href={`mailto:${s.email}`} icon="mail" text={s.email} />}
+            {s.whatsapp && <FooterLink href={waLink} icon="message" text="Escríbenos por WhatsApp" />}
+            {s.phone && <FooterLink href={`tel:${s.phone.replace(/\s/g, '')}`} icon="phone" text={s.phone} />}
           </div>
         )}
 
@@ -148,35 +153,41 @@ function Footer() {
           <div style={{ flex: '1 1 200px' }}>
             <div style={colTitle}>Ubicación</div>
             {(s.address || s.city) && (
-              <div style={footerText}>
-                <span style={{ marginRight: 7 }}>📍</span>
-                {[s.address, s.city].filter(Boolean).join(', ')}
+              <div style={{ ...footerText, display: 'flex', alignItems: 'flex-start', gap: 7 }}>
+                <Icon name="map-pin" size={15} color="#7C6B76" style={{ marginTop: 2 }} />
+                <span>{[s.address, s.city].filter(Boolean).join(', ')}</span>
               </div>
             )}
-            {s.hours && <div style={footerText}><span style={{ marginRight: 7 }}>🕒</span>{s.hours}</div>}
-            {s.mapsUrl && <FooterLink href={s.mapsUrl} icon="🗺️" text="Ver en el mapa" />}
+            {s.hours && (
+              <div style={{ ...footerText, display: 'flex', alignItems: 'center', gap: 7 }}>
+                <Icon name="clock" size={15} color="#7C6B76" />
+                {s.hours}
+              </div>
+            )}
+            {s.mapsUrl && <FooterLink href={s.mapsUrl} icon="map" text="Ver en el mapa" />}
           </div>
         )}
 
         {hasSocial && (
           <div style={{ flex: '1 1 160px' }}>
             <div style={colTitle}>Síguenos</div>
-            {s.instagram && <FooterLink href={`https://instagram.com/${s.instagram}`} icon="📸" text={`@${s.instagram}`} />}
-            {s.facebook && <FooterLink href={`https://facebook.com/${s.facebook}`} icon="👍" text={s.facebook} />}
+            {s.instagram && <FooterLink href={`https://instagram.com/${s.instagram}`} icon="instagram" text={`@${s.instagram}`} />}
+            {s.facebook && <FooterLink href={`https://facebook.com/${s.facebook}`} icon="users" text={s.facebook} />}
           </div>
         )}
       </div>
-      <div style={{ borderTop: `1px solid ${C.border}`, padding: '14px 24px', textAlign: 'center', fontSize: 12.5, color: C.muted }}>
-        © {new Date().getFullYear()} {s.name}. Hecho con cariño 🌸
+      <div style={{ borderTop: `1px solid ${C.border}`, padding: '14px 24px', textAlign: 'center', fontSize: 12.5, color: C.muted, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        © {new Date().getFullYear()} {s.name}. Hecho con cariño
+        <Icon name="heart" size={14} color={C.pinkSoft} />
       </div>
     </footer>
   )
 }
 
-function FooterLink({ href, icon, text }: { href: string; icon: string; text: string }) {
+function FooterLink({ href, icon, text }: { href: string; icon: IconName; text: string }) {
   return (
-    <a href={href} target="_blank" rel="noreferrer" style={{ ...footerText, display: 'flex', alignItems: 'center' }}>
-      <span style={{ marginRight: 7 }}>{icon}</span>
+    <a href={href} target="_blank" rel="noreferrer" style={{ ...footerText, display: 'flex', alignItems: 'center', gap: 7 }}>
+      <Icon name={icon} size={15} color="#7C6B76" />
       <span style={{ textDecoration: 'underline', textUnderlineOffset: 2 }}>{text}</span>
     </a>
   )
@@ -185,7 +196,7 @@ function FooterLink({ href, icon, text }: { href: string; icon: string; text: st
 const colTitle: React.CSSProperties = { fontFamily: font.display, fontWeight: 700, fontSize: 15, color: C.text, marginBottom: 10 }
 const footerText: React.CSSProperties = { fontSize: 13.5, color: '#7C6B76', fontWeight: 600, marginBottom: 8, lineHeight: 1.4 }
 
-function Chip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+function Chip({ children, active, onClick }: { children: React.ReactNode; active: boolean; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -195,9 +206,10 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
         color: active ? C.white : C.pinkSoft,
         padding: '8px 15px', borderRadius: 999, fontWeight: 700, fontSize: 13.5,
         boxShadow: active ? shadow.btn : 'none', transition: 'all .15s',
+        display: 'inline-flex', alignItems: 'center', gap: 6,
       }}
     >
-      {label}
+      {children}
     </button>
   )
 }
@@ -218,7 +230,7 @@ function ProductCard({ product }: { product: Product }) {
           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 46,
         }}
       >
-        {!product.imageUrl && (cat?.emoji ?? '🎀')}
+        {!product.imageUrl && <CategoryIcon categoryId={product.category} size={42} color={C.pinkSoft} style={{ opacity: 0.8 }} />}
       </div>
       <div style={{ padding: '14px 16px 16px', display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
         <div style={{ fontSize: 11.5, fontWeight: 700, color: C.pinkSoft, letterSpacing: '.3px' }}>
@@ -237,7 +249,7 @@ function ProductCard({ product }: { product: Product }) {
 function Empty() {
   return (
     <div style={{ textAlign: 'center', padding: '70px 20px', color: C.muted }}>
-      <div style={{ fontSize: 52 }}>🛍️</div>
+      <Icon name="shopping-bag" size={52} color={C.pinkSoft} style={{ margin: '0 auto', opacity: 0.85 }} />
       <div style={{ fontWeight: 700, fontSize: 18, color: C.text, marginTop: 10 }}>
         Aún no hay productos para mostrar
       </div>

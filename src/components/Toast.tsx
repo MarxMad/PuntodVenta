@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
 import { C, shadow } from '../theme'
+import { Icon } from './Icon'
 
 type ToastKind = 'ok' | 'error'
 interface ToastMsg { id: number; text: string; kind: ToastKind }
@@ -41,7 +42,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               gap: 9,
             }}
           >
-            <span>{t.kind === 'ok' ? '✅' : '⚠️'}</span>
+            <Icon name={t.kind === 'ok' ? 'check' : 'alert'} size={18} color={t.kind === 'ok' ? C.green : C.red} strokeWidth={2.5} />
             {t.text}
           </div>
         ))}

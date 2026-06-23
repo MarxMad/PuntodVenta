@@ -7,6 +7,7 @@ import { useToast } from '../../components/Toast'
 import { useResult } from '../../components/ResultModal'
 import { Spinner } from './Products'
 import { C, font, gradient, shadow } from '../../theme'
+import { Icon, MachineIcon } from '../../components/Icon'
 
 const today = () => new Date().toISOString().slice(0, 10)
 const monthKey = (iso: string) => iso.slice(0, 7) // YYYY-MM
@@ -77,7 +78,7 @@ export default function Machines() {
 
       {machines.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: C.muted }}>
-          <div style={{ fontSize: 48 }}>🕹️</div>
+          <Icon name="gamepad" size={48} color={C.pinkSoft} style={{ margin: '0 auto', opacity: 0.85 }} />
           <div style={{ fontWeight: 700, fontSize: 17, color: C.text, marginTop: 10 }}>Aún no tienes máquinas</div>
           <div style={{ fontSize: 14, marginTop: 4 }}>Da de alta tus maquinitas y empieza a registrar recolecciones.</div>
         </div>
@@ -88,7 +89,7 @@ export default function Machines() {
             return (
               <div key={location}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <span style={{ fontSize: 18 }}>📍</span>
+                  <Icon name="map-pin" size={18} color={C.pinkSoft} />
                   <span style={{ fontFamily: font.display, fontWeight: 700, fontSize: 18, color: C.text }}>{location}</span>
                   <span style={{ fontSize: 12.5, color: C.muted, fontWeight: 600 }}>· {list.length} máquina{list.length === 1 ? '' : 's'}</span>
                   <span style={{ marginLeft: 'auto', fontWeight: 700, color: C.pinkDeep }}>{formatMoney(locTotal)} recolectado</span>
@@ -101,7 +102,7 @@ export default function Machines() {
                       <div key={m.id} className="cap-list-row" style={rowStyle}>
                         <div className="cap-list-main">
                           <div style={{ width: 52, height: 52, flex: 'none', borderRadius: 13, background: gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                            {m.type === 'peluche' ? '🧸' : '🕹️'}
+                            <MachineIcon type={m.type} size={22} color={C.pinkSoft} />
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontWeight: 700, fontSize: 15, color: C.text }}>{m.name}</div>
@@ -115,7 +116,10 @@ export default function Machines() {
                           </div>
                         </div>
                         <div className="cap-list-actions">
-                          <button onClick={() => setCollectFor(m)} style={{ ...iconBtn, background: gradient.brand, color: '#fff', border: 'none' }}>💰 Recolección</button>
+                          <button onClick={() => setCollectFor(m)} style={{ ...iconBtn, background: gradient.brand, color: '#fff', border: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <Icon name="banknote" size={15} color="#fff" />
+                            Recolección
+                          </button>
                           <button onClick={() => setHistoryFor(m)} style={iconBtn}>Historial</button>
                           <button onClick={() => setEditing(m)} style={iconBtn}>Editar</button>
                         </div>
@@ -184,7 +188,9 @@ function AddMachinesModal({ onClose, onSaved }: { onClose: () => void; onSaved: 
                 {MACHINE_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
               </select>
               {rows.length > 1 && (
-                <button onClick={() => setRows((rr) => rr.filter((_, idx) => idx !== i))} style={{ ...iconBtn, color: C.red }}>✕</button>
+                <button onClick={() => setRows((rr) => rr.filter((_, idx) => idx !== i))} style={{ ...iconBtn, color: C.red, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', padding: '7px 9px' }} aria-label="Quitar">
+                  <Icon name="x" size={16} color={C.red} strokeWidth={2.5} />
+                </button>
               )}
             </div>
           ))}

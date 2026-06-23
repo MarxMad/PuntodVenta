@@ -99,7 +99,7 @@ export function printReceipt(sale: Sale) {
       ${sale.discount > 0 ? `<div><span>Descuento</span><span>−${formatMoney(sale.discount)}</span></div>` : ''}
       <div class="total"><span>Total</span><span>${formatMoney(sale.total)}</span></div>
     </div>
-    ${voided ? '<div class="void">VENTA CANCELADA</div>' : '<div class="thanks">¡Gracias por tu compra! 🌸</div>'}
+    ${voided ? '<div class="void">VENTA CANCELADA</div>' : '<div class="thanks">¡Gracias por tu compra!</div>'}
     <script>window.onload = () => { window.print(); }<\/script>
     </body></html>`
 
@@ -127,7 +127,7 @@ export function receiptText(sale: Sale): string {
   ]
   if (sale.discount > 0) lines.push(`Descuento: −${formatMoney(sale.discount)}`)
   lines.push(`TOTAL: ${formatMoney(sale.total)}`)
-  lines.push('', '¡Gracias por tu compra! 🌸')
+  lines.push('', '¡Gracias por tu compra!')
   if (STORE.email) lines.push(STORE.email)
   return lines.join('\n')
 }

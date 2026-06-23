@@ -9,7 +9,7 @@ export const ADMIN_BASE = '/cap-panel-2741'
 // Rellena los que tengas; los que dejes vacíos ('') simplemente no se mostrarán.
 export const STORE = {
   name: 'Caprichitos',
-  tagline: 'Regalos y novedades 🌸',
+  tagline: 'Regalos y novedades',
   email: 'Caprichitosregalosynovedades@gmail.com',
   whatsapp: '', // solo números con código de país, ej. '5215512345678'
   phone: '', // como quieras mostrarlo, ej. '55 1234 5678'

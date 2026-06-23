@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { db } from '../../lib/db'
 import type { Product, Sale } from '../../lib/types'
-import { categoryById } from '../../lib/categories'
 import { ADMIN_BASE } from '../../config'
 import { formatMoney, formatDateTime, isToday } from '../../lib/format'
 import { Spinner } from './Products'
 import { C, font, gradient, shadow } from '../../theme'
+import { CategoryIcon, Icon, type IconName } from '../../components/Icon'
 
 const LOW_STOCK = 5
 
@@ -52,7 +52,9 @@ export default function Dashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {sales.slice(0, 6).map((s) => (
                 <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: C.bg, borderRadius: 12, padding: '10px 13px' }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 10, background: gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🧾</div>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: gradient.card, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon name="receipt" size={18} color={C.pinkSoft} />
+                  </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: C.text }}>{s.items.reduce((a, i) => a + i.qty, 0)} artículos · {s.paymentMethod}{s.status === 'voided' ? ' · cancelada' : ''}</div>
                     <div style={{ fontSize: 12, color: C.muted }}>{formatDateTime(s.createdAt)}</div>
@@ -67,12 +69,12 @@ export default function Dashboard() {
         {/* Stock bajo */}
         <Panel title="Reponer pronto" action={<Link to={`${ADMIN_BASE}/inventario`} style={linkStyle}>Ver inventario →</Link>}>
           {stats.lowStock.length === 0 ? (
-            <Empty text="Todo tu stock está sano 🌿" />
+            <Empty text="Todo tu stock está sano" icon="leaf" />
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {stats.lowStock.slice(0, 7).map((p) => (
                 <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: 18 }}>{categoryById(p.category)?.emoji}</span>
+                  <CategoryIcon categoryId={p.category} size={18} color={C.pinkSoft} />
                   <span style={{ flex: 1, fontWeight: 700, fontSize: 14, color: C.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
                   <span style={{ fontSize: 12.5, fontWeight: 700, color: p.stock === 0 ? C.red : C.amber, background: p.stock === 0 ? '#FDECEF' : '#FFF4E2', padding: '4px 10px', borderRadius: 999 }}>{p.stock} pzs</span>
                 </div>
@@ -107,8 +109,13 @@ function Panel({ title, action, children }: { title: string; action?: React.Reac
   )
 }
 
-function Empty({ text }: { text: string }) {
-  return <div style={{ color: C.muted, fontSize: 14, textAlign: 'center', padding: '24px 0' }}>{text}</div>
+function Empty({ text, icon }: { text: string; icon?: IconName }) {
+  return (
+    <div style={{ color: C.muted, fontSize: 14, textAlign: 'center', padding: '24px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+      {icon && <Icon name={icon} size={28} color={C.pinkSoft} style={{ opacity: 0.85 }} />}
+      {text}
+    </div>
+  )
 }
 
 const linkStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: C.pinkSoft }

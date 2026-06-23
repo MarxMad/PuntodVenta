@@ -2,12 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { db } from '../../../lib/db'
 import type { CashSession, Product, Sale, SaleItem } from '../../../lib/types'
-import { categoryById } from '../../../lib/categories'
 import { cartSubtotal, cartTotal, lineNet, parseMoneyInput } from '../../../lib/saleCalc'
 import { formatMoney } from '../../../lib/format'
 import { useToast } from '../../../components/Toast'
 import SaleConfirmedModal from './SaleConfirmedModal'
 import { C, font, gradient, shadow } from '../../../theme'
+import { CategoryIcon, Icon, IconText } from '../../../components/Icon'
 
 const SCANNER_ID = 'cap-qr-reader'
 
@@ -147,8 +147,9 @@ export default function ChargePanel({ products, cashSession, soldBy, onReload }:
       {confirmed && <SaleConfirmedModal sale={confirmed} onClose={() => setConfirmed(null)} />}
       <div>
         {!cashSession && (
-          <div style={{ background: '#FFF4E2', border: '1px solid #F6E2BE', borderRadius: 14, padding: '12px 14px', marginBottom: 14, fontSize: 13, color: C.amber, fontWeight: 600 }}>
-            ⚠️ No hay caja abierta. Puedes cobrar igual; abre caja en la pestaña <b>Corte de caja</b> para llevar el control del efectivo.
+          <div style={{ background: '#FFF4E2', border: '1px solid #F6E2BE', borderRadius: 14, padding: '12px 14px', marginBottom: 14, fontSize: 13, color: C.amber, fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <Icon name="alert" size={18} color={C.amber} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>No hay caja abierta. Puedes cobrar igual; abre caja en la pestaña <b>Corte de caja</b> para llevar el control del efectivo.</span>
           </div>
         )}
         <div style={{ background: C.white, borderRadius: 20, border: `1px solid ${C.border}`, boxShadow: shadow.card, padding: 20 }}>
@@ -156,14 +157,19 @@ export default function ChargePanel({ products, cashSession, soldBy, onReload }:
           <div style={{ fontSize: 13, color: C.muted, marginBottom: 14 }}>Apunta la cámara al código QR de la etiqueta.</div>
 
           <div id={SCANNER_ID} style={{ width: '100%', borderRadius: 16, overflow: 'hidden', background: scanning ? '#000' : C.bg, minHeight: scanning ? 'auto' : 180, display: scanning ? 'block' : 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {!scanning && <div style={{ textAlign: 'center', color: C.muted, padding: 30 }}><div style={{ fontSize: 40 }}>📷</div><div style={{ fontWeight: 700, marginTop: 6 }}>Cámara apagada</div></div>}
+            {!scanning && (
+              <div style={{ textAlign: 'center', color: C.muted, padding: 30 }}>
+                <Icon name="camera" size={40} color={C.muted} style={{ margin: '0 auto' }} />
+                <div style={{ fontWeight: 700, marginTop: 6 }}>Cámara apagada</div>
+              </div>
+            )}
           </div>
 
           <button
             onClick={() => setScanning((v) => !v)}
-            style={{ width: '100%', marginTop: 14, background: scanning ? C.white : gradient.brand, color: scanning ? C.pinkSoft : '#fff', border: scanning ? `1px solid ${C.border}` : 'none', borderRadius: 13, padding: '12px', fontWeight: 700, fontSize: 15, boxShadow: scanning ? 'none' : shadow.btn }}
+            style={{ width: '100%', marginTop: 14, background: scanning ? C.white : gradient.brand, color: scanning ? C.pinkSoft : '#fff', border: scanning ? `1px solid ${C.border}` : 'none', borderRadius: 13, padding: '12px', fontWeight: 700, fontSize: 15, boxShadow: scanning ? 'none' : shadow.btn, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
           >
-            {scanning ? 'Detener cámara' : '📷 Encender cámara'}
+            {scanning ? 'Detener cámara' : <IconText icon="camera" size={17} color="#fff">Encender cámara</IconText>}
           </button>
 
           <div style={{ marginTop: 18 }}>
@@ -179,7 +185,7 @@ export default function ChargePanel({ products, cashSession, soldBy, onReload }:
               <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {filtered.map((p) => (
                   <button key={p.id} onClick={() => { addProduct(p); setManual('') }} style={{ display: 'flex', alignItems: 'center', gap: 10, textAlign: 'left', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 11, padding: '9px 12px' }}>
-                    <span style={{ fontSize: 20 }}>{categoryById(p.category)?.emoji}</span>
+                    <CategoryIcon categoryId={p.category} size={20} color={C.pinkSoft} />
                     <span style={{ flex: 1 }}>
                       <span style={{ display: 'block', fontWeight: 700, fontSize: 14, color: C.text }}>{p.name}</span>
                       <span style={{ fontSize: 12, color: C.muted, fontFamily: 'monospace' }}>{p.sku}</span>
@@ -201,7 +207,7 @@ export default function ChargePanel({ products, cashSession, soldBy, onReload }:
 
         {cart.length === 0 ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: C.muted, textAlign: 'center' }}>
-            <div style={{ fontSize: 44 }}>🛒</div>
+            <Icon name="shopping-cart" size={44} color={C.pinkSoft} style={{ opacity: 0.85 }} />
             <div style={{ fontWeight: 700, color: C.text, marginTop: 8 }}>El carrito está vacío</div>
             <div style={{ fontSize: 13, marginTop: 2 }}>Escanea un producto para empezar.</div>
           </div>

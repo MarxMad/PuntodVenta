@@ -8,6 +8,7 @@ import { formatMoney } from '../../lib/format'
 import { usePermissions } from '../../contexts/PermissionsContext'
 import { hasPermission } from '../../lib/permissions'
 import { C, font, gradient, shadow } from '../../theme'
+import { Icon } from '../../components/Icon'
 
 const LOGIN_PATH = `${ADMIN_BASE}/login`
 const ALTA_PATH = `${ADMIN_BASE}/alta`
@@ -23,7 +24,7 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { to: ADMIN_BASE, routeKey: '', label: 'Inicio', title: 'Hola de nuevo 🌸', subtitle: 'Resumen de tu tienda Caprichitos', icon: icon('M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z'), bottom: true },
+  { to: ADMIN_BASE, routeKey: '', label: 'Inicio', title: 'Hola de nuevo', subtitle: 'Resumen de tu tienda Caprichitos', icon: icon('M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z'), bottom: true },
   { to: `${ADMIN_BASE}/catalogo`, routeKey: 'catalogo', label: 'Catálogo', title: 'Catálogo', subtitle: 'Administra los productos de tu tienda', icon: icon('M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z') },
   { to: `${ADMIN_BASE}/inventario`, routeKey: 'inventario', label: 'Inventario', title: 'Inventario', subtitle: 'Controla el stock de cada producto', icon: icon('M21 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v3M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM9 12h6'), bottom: true },
   { to: `${ADMIN_BASE}/ventas`, routeKey: 'ventas', label: 'Punto de venta', title: 'Punto de venta', subtitle: 'Escanea, cobra y registra ventas', icon: icon('M2 3h2.5l2.2 12.3a1.5 1.5 0 0 0 1.5 1.2h8.7a1.5 1.5 0 0 0 1.5-1.2L21 7H6'), bottom: true },
@@ -172,7 +173,7 @@ export default function AdminLayout() {
           }}
         >
           <button type="button" className="cap-menu-btn" onClick={() => setMenuOpen((v) => !v)} aria-label="Abrir menú">
-            ☰
+            <Icon name="menu" size={22} color={C.pinkDeep} />
           </button>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: font.display, fontWeight: 700, fontSize: 24, color: C.text }}>{meta.title}</div>

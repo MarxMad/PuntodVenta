@@ -5,6 +5,7 @@ import { formatMoney, formatDateTime } from '../../../lib/format'
 import { printReceipt } from '../../../lib/print'
 import { useToast } from '../../../components/Toast'
 import { C, font, gradient, shadow } from '../../../theme'
+import { Icon } from '../../../components/Icon'
 
 interface Props {
   sales: Sale[]
@@ -54,7 +55,7 @@ export default function HistoryPanel({ sales, onReload }: Props) {
 
       {visible.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '50px 20px', color: C.muted }}>
-          <div style={{ fontSize: 48 }}>🧾</div>
+          <Icon name="receipt" size={48} color={C.pinkSoft} style={{ margin: '0 auto', opacity: 0.85 }} />
           <div style={{ fontWeight: 700, fontSize: 17, color: C.text, marginTop: 10 }}>Sin ventas registradas</div>
         </div>
       ) : (
@@ -83,7 +84,10 @@ export default function HistoryPanel({ sales, onReload }: Props) {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    <button onClick={() => printReceipt(s)} style={ghostBtn}>🖨️ Ticket</button>
+                    <button onClick={() => printReceipt(s)} style={{ ...ghostBtn, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <Icon name="printer" size={15} color={C.pinkSoft} />
+                      Ticket
+                    </button>
                     {!voided && (
                       <button onClick={() => voidSale(s)} disabled={busy === s.id} style={{ ...ghostBtn, color: C.red, borderColor: '#F6D0D8' }}>
                         {busy === s.id ? '…' : 'Cancelar venta'}
