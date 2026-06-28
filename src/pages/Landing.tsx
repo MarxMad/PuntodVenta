@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { STORE } from '../config'
+import { db } from '../lib/db'
+import type { Product } from '../lib/types'
+import { formatMoney } from '../lib/format'
+import Gift3D from '../components/Gift3D'
+
+// URL de Google Maps embebible a partir de los datos de STORE (sin API key).
+function mapEmbedSrc(): string | null {
+  if (STORE.mapsUrl && STORE.mapsUrl.includes('output=embed')) return STORE.mapsUrl
+  const q = [STORE.address, STORE.city].filter(Boolean).join(', ')
+  if (q) return `https://maps.google.com/maps?q=${encodeURIComponent(q)}&z=16&output=embed`
+  return null
+}
 
 // ── Landing pública de Caprichitos (página principal) ────────────────────────
 // Diseño 2024-2025: tipografía fluida (clamp), gradiente "mesh" animado,
@@ -80,6 +92,14 @@ const STATS = [
   { end: 100, suffix: '%', label: 'Atención personal' },
 ]
 
+// Tarjetas que giran en 3D (flip) por ocasión
+const FLIP = [
+  { emoji: '🎂', t: 'Cumpleaños', d: 'El regalo perfecto para celebrar a quien quieres.' },
+  { emoji: '💝', t: 'Amor', d: 'Detalles románticos para sorprender en grande.' },
+  { emoji: '🎉', t: 'Fiesta', d: 'Todo para que la reunión brille de principio a fin.' },
+  { emoji: '🌟', t: 'Solo porque sí', d: 'Porque un detalle bonito alegra cualquier día.' },
+]
+
 // Contador animado al entrar en pantalla
 function AnimatedStat({ end, suffix, label }: { end: number; suffix: string; label: string }) {
   const [val, setVal] = useState(0)
@@ -121,6 +141,14 @@ function AnimatedStat({ end, suffix, label }: { end: number; suffix: string; lab
 
 export default function Landing() {
   const progressRef = useRef<HTMLDivElement>(null)
+  const [products, setProducts] = useState<Product[]>([])
+
+  // Productos reales para el ticker (catálogo activo y con existencias)
+  useEffect(() => {
+    db.listProducts()
+      .then((all) => setProducts(all.filter((p) => p.active && p.stock > 0).slice(0, 14)))
+      .catch(() => {})
+  }, [])
 
   // Reveal escalonado + scroll progress
   useEffect(() => {
@@ -139,12 +167,22 @@ export default function Landing() {
     )
     document.querySelectorAll('.lp .reveal').forEach((el) => obs.observe(el))
 
+    const reduceMo = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const parallax = Array.from(document.querySelectorAll<HTMLElement>('.lp [data-depth]'))
     const onScroll = () => {
       const h = document.documentElement
       const max = h.scrollHeight - h.clientHeight
       const p = max > 0 ? h.scrollTop / max : 0
       if (progressRef.current) progressRef.current.style.transform = `scaleX(${p})`
       document.querySelector('.lp nav')?.classList.toggle('shrink', h.scrollTop > 24)
+      // Parallax de profundidad (capas se mueven a distinta velocidad)
+      if (!reduceMo) {
+        const y = h.scrollTop
+        for (const el of parallax) {
+          const d = parseFloat(el.dataset.depth || '0')
+          el.style.transform = `translate3d(0, ${y * d}px, 0)`
+        }
+      }
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -200,19 +238,37 @@ export default function Landing() {
         cleanups.push(() => { el.removeEventListener('mousemove', move); el.removeEventListener('mouseleave', reset) })
       })
 
-      // Tilt 3D en tarjetas
+      // Tilt 3D + spotlight que sigue al cursor en tarjetas
       document.querySelectorAll<HTMLElement>('.lp .tilt').forEach((el) => {
         const move = (e: MouseEvent) => {
           const r = el.getBoundingClientRect()
           const px = (e.clientX - r.left) / r.width - 0.5
           const py = (e.clientY - r.top) / r.height - 0.5
           el.style.transform = `perspective(800px) rotateX(${-py * 8}deg) rotateY(${px * 8}deg) translateY(-4px)`
+          el.style.setProperty('--mx', `${(e.clientX - r.left)}px`)
+          el.style.setProperty('--my', `${(e.clientY - r.top)}px`)
         }
         const reset = () => { el.style.transform = 'perspective(800px) rotateX(0) rotateY(0)' }
         el.addEventListener('mousemove', move)
         el.addEventListener('mouseleave', reset)
         cleanups.push(() => { el.removeEventListener('mousemove', move); el.removeEventListener('mouseleave', reset) })
       })
+
+      // Parallax 3D del hero: toda la escena de regalo se inclina con el mouse
+      const hero = document.querySelector<HTMLElement>('.lp .hero')
+      const art = document.querySelector<HTMLElement>('.lp .hero-art')
+      if (hero && art) {
+        const move = (e: MouseEvent) => {
+          const r = hero.getBoundingClientRect()
+          const px = (e.clientX - r.left) / r.width - 0.5
+          const py = (e.clientY - r.top) / r.height - 0.5
+          art.style.transform = `perspective(900px) rotateY(${px * 12}deg) rotateX(${-py * 10}deg)`
+        }
+        const reset = () => { art.style.transform = 'perspective(900px) rotateY(0) rotateX(0)' }
+        hero.addEventListener('mousemove', move)
+        hero.addEventListener('mouseleave', reset)
+        cleanups.push(() => { hero.removeEventListener('mousemove', move); hero.removeEventListener('mouseleave', reset) })
+      }
     }
 
     return () => {
@@ -273,21 +329,14 @@ export default function Landing() {
           </div>
 
           <div className="hero-art reveal">
-            <div className="glass-card float">
-              <div className="gift">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="9" width="18" height="12" rx="2" fill="#fff" />
-                  <rect x="3" y="9" width="18" height="4" rx="1" fill="#FCD7E6" />
-                  <rect x="10.5" y="9" width="3" height="12" fill="#EC6F9C" />
-                  <path d="M12 9C12 9 8 9 7 6.5C6.3 4.8 8.2 3.2 9.6 4.4C11 5.6 12 9 12 9Z" fill="#F58FB4" />
-                  <path d="M12 9C12 9 16 9 17 6.5C17.7 4.8 15.8 3.2 14.4 4.4C13 5.6 12 9 12 9Z" fill="#F58FB4" />
-                </svg>
-              </div>
+            <div className="glass-card">
+              {/* Regalo 3D real con WebGL (Three.js), respaldo CSS adentro */}
+              <Gift3D />
               <p>Hecho con amor 💗</p>
             </div>
-            <span className="badge b-a float-s">🧸</span>
-            <span className="badge b-b float-s">🎀</span>
-            <span className="badge b-c float-s">💝</span>
+            <span className="badge b-a float-s" data-depth="-0.06">🧸</span>
+            <span className="badge b-b float-s" data-depth="0.05">🎀</span>
+            <span className="badge b-c float-s" data-depth="-0.04">💝</span>
           </div>
         </div>
 
@@ -326,6 +375,58 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* FLIP CARDS 3D por ocasión */}
+      <section className="block flip-sec">
+        <div className="wrap">
+          <p className="eyebrow reveal">Un detalle para cada momento</p>
+          <h2 className="title reveal">¿Qué quieres celebrar?</h2>
+          <p className="sub reveal">Pasa el cursor (o toca) cada tarjeta para descubrir más.</p>
+          <div className="flips">
+            {FLIP.map((f, i) => (
+              <div className="flip reveal" key={f.t} style={{ ['--d' as string]: `${i * 0.08}s` }} tabIndex={0}>
+                <div className="flip-inner">
+                  <div className="flip-face flip-front">
+                    <span className="flip-emoji">{f.emoji}</span>
+                    <h3>{f.t}</h3>
+                  </div>
+                  <div className="flip-face flip-back">
+                    <p>{f.d}</p>
+                    <Link to="/tienda" className="flip-link">Ver opciones →</Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TICKER de productos reales del catálogo */}
+      {products.length > 0 && (
+        <section className="ticker-sec">
+          <div className="wrap">
+            <p className="eyebrow reveal">Directo del catálogo</p>
+            <h2 className="title reveal">Algunas de nuestras novedades</h2>
+          </div>
+          <div className="ticker" aria-hidden="true">
+            <div className="ticker-track">
+              {[...products, ...products].map((p, i) => (
+                <Link to="/tienda" className="prod" key={i}>
+                  <div className="prod-img">
+                    {p.imageUrl
+                      ? <img src={p.imageUrl} alt={p.name} loading="lazy" />
+                      : <span className="prod-ph">🎁</span>}
+                  </div>
+                  <div className="prod-info">
+                    <span className="prod-name">{p.name}</span>
+                    <span className="prod-price">{formatMoney(p.price)}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* MARQUEE de categorías */}
       <section className="marquee-sec" id="productos">
         <p className="eyebrow reveal">Lo que encontrarás</p>
@@ -357,9 +458,72 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* UBICACIÓN + CONTACTO */}
+      <section className="block loc-sec" id="contacto">
+        <div className="wrap">
+          <p className="eyebrow reveal">Dónde encontrarnos</p>
+          <h2 className="title reveal">Visítanos o escríbenos</h2>
+          <div className="loc-grid reveal">
+            <div className="loc-info">
+              {(STORE.address || STORE.city) && (
+                <div className="loc-row">
+                  <span className="loc-ico">📍</span>
+                  <div><b>Dirección</b><span>{[STORE.address, STORE.city].filter(Boolean).join(', ')}</span></div>
+                </div>
+              )}
+              {STORE.hours && (
+                <div className="loc-row">
+                  <span className="loc-ico">🕒</span>
+                  <div><b>Horario</b><span>{STORE.hours}</span></div>
+                </div>
+              )}
+              {STORE.whatsapp && (
+                <a className="loc-row link" href={`https://wa.me/${STORE.whatsapp}`} target="_blank" rel="noreferrer">
+                  <span className="loc-ico">💬</span>
+                  <div><b>WhatsApp</b><span>Escríbenos por WhatsApp</span></div>
+                </a>
+              )}
+              {STORE.phone && (
+                <a className="loc-row link" href={`tel:${STORE.phone.replace(/\s/g, '')}`}>
+                  <span className="loc-ico">📞</span>
+                  <div><b>Teléfono</b><span>{STORE.phone}</span></div>
+                </a>
+              )}
+              <a className="loc-row link" href={`mailto:${STORE.email}`}>
+                <span className="loc-ico">📧</span>
+                <div><b>Correo</b><span>{STORE.email}</span></div>
+              </a>
+              {STORE.instagram && (
+                <a className="loc-row link" href={`https://instagram.com/${STORE.instagram}`} target="_blank" rel="noreferrer">
+                  <span className="loc-ico">📷</span>
+                  <div><b>Instagram</b><span>@{STORE.instagram}</span></div>
+                </a>
+              )}
+            </div>
+            <div className="loc-map">
+              {mapEmbedSrc() ? (
+                <iframe
+                  title="Ubicación de Caprichitos"
+                  src={mapEmbedSrc() as string}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="map-ph">
+                  <span>🗺️</span>
+                  <b>Mapa próximamente</b>
+                  <p>Agrega tu dirección en la configuración para mostrar el mapa aquí.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA FINAL */}
       <section className="cta-wrap">
-        <div className="cta-final reveal" id="contacto">
+        <div className="cta-final reveal">
           <div className="shine" aria-hidden="true" />
           <h2>¿Buscas el regalo perfecto?</h2>
           <p>Visítanos o explora nuestro catálogo en línea. Tenemos novedades cada semana.</p>
@@ -470,8 +634,26 @@ const CSS = `
 /* arte hero */
 .lp .hero-art{position:relative;height:clamp(280px,34vw,380px)}
 .lp .glass-card{position:absolute;inset:14% 12%;background:rgba(255,255,255,.55);backdrop-filter:blur(16px) saturate(160%);border:1px solid rgba(255,255,255,.7);border-radius:30px;box-shadow:0 22px 60px rgba(192,79,126,.22);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
-.lp .glass-card .gift svg{width:clamp(120px,15vw,168px);height:clamp(120px,15vw,168px);filter:drop-shadow(0 16px 26px rgba(192,79,126,.26))}
 .lp .glass-card p{font-family:var(--display);font-weight:600;color:var(--pinkDeep)}
+/* contenedor del regalo WebGL */
+.lp .gift3d{width:min(86%,230px);height:clamp(180px,22vw,230px);display:flex;align-items:center;justify-content:center}
+.lp .gift3d canvas{filter:drop-shadow(0 18px 26px rgba(192,79,126,.28))}
+/* caja de regalo 3D (preserve-3d) — respaldo */
+.lp .scene3d{width:160px;height:150px;perspective:700px;display:flex;align-items:center;justify-content:center}
+.lp .box3d{position:relative;width:96px;height:96px;transform-style:preserve-3d;animation:spin3d 9s linear infinite}
+@keyframes spin3d{from{transform:rotateX(-18deg) rotateY(0)}to{transform:rotateX(-18deg) rotateY(360deg)}}
+.lp .face{position:absolute;width:96px;height:96px;background:
+  linear-gradient(90deg,transparent 42%,rgba(255,255,255,.95) 42%,rgba(255,255,255,.95) 58%,transparent 58%),
+  linear-gradient(0deg,transparent 42%,rgba(255,255,255,.85) 42%,rgba(255,255,255,.85) 58%,transparent 58%),
+  linear-gradient(135deg,var(--pinkBright),var(--pinkDeep));
+  border:1px solid rgba(192,79,126,.25);box-shadow:inset 0 0 22px rgba(192,79,126,.25)}
+.lp .fx-front{transform:translateZ(48px)}
+.lp .fx-back{transform:rotateY(180deg) translateZ(48px)}
+.lp .fx-right{transform:rotateY(90deg) translateZ(48px)}
+.lp .fx-left{transform:rotateY(-90deg) translateZ(48px)}
+.lp .fx-top{transform:rotateX(90deg) translateZ(48px);background:linear-gradient(135deg,#FBA3C4,var(--pink))}
+.lp .fx-bottom{transform:rotateX(-90deg) translateZ(48px);background:var(--pinkDeep)}
+.lp .bow{position:absolute;top:-26px;left:50%;transform:translateX(-50%) translateZ(48px);font-size:34px;filter:drop-shadow(0 6px 8px rgba(192,79,126,.35))}
 .lp .badge{position:absolute;width:54px;height:54px;border-radius:18px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 10px 26px rgba(236,111,156,.22)}
 .lp .badge.b-a{top:2%;left:0}
 .lp .badge.b-b{bottom:6%;right:2%}
@@ -481,6 +663,7 @@ const CSS = `
 .lp .badge.b-b{animation-delay:-2s}
 .lp .badge.b-c{animation-delay:-3.5s}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
+.lp .hero-art{transition:transform .25s var(--ease);transform-style:preserve-3d;will-change:transform}
 @media(max-width:860px){.lp .hero-grid{grid-template-columns:1fr}.lp .hero-art{display:none}}
 
 /* scroll indicator */
@@ -505,8 +688,12 @@ const CSS = `
 /* bento */
 .lp .bento{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
 .lp .bento .wide{grid-column:span 1;grid-row:span 2;display:flex;flex-direction:column;justify-content:center;background:linear-gradient(150deg,#fff,#FDF0F6)}
-.lp .card{background:#fff;border:1px solid var(--border);border-radius:24px;padding:28px;box-shadow:0 6px 22px rgba(236,111,156,.1);transition:box-shadow .3s var(--ease),transform .25s var(--ease);transform-style:preserve-3d;will-change:transform}
+.lp .card{position:relative;overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:24px;padding:28px;box-shadow:0 6px 22px rgba(236,111,156,.1);transition:box-shadow .3s var(--ease),transform .25s var(--ease);transform-style:preserve-3d;will-change:transform}
 .lp .card:hover{box-shadow:0 22px 50px rgba(236,111,156,.22)}
+/* spotlight que sigue al cursor */
+.lp .card::before{content:'';position:absolute;inset:0;border-radius:inherit;background:radial-gradient(220px circle at var(--mx,50%) var(--my,50%),rgba(236,111,156,.16),transparent 60%);opacity:0;transition:opacity .3s var(--ease);pointer-events:none;z-index:0}
+.lp .card:hover::before{opacity:1}
+.lp .card>*{position:relative;z-index:1}
 .lp .ico{width:56px;height:56px;border-radius:17px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;background:linear-gradient(135deg,var(--card1),var(--card2))}
 .lp .ico svg{width:28px;height:28px}
 .lp .card h3{font-size:19px;margin-bottom:7px}
@@ -516,6 +703,23 @@ const CSS = `
 @media(max-width:860px){.lp .bento{grid-template-columns:repeat(2,1fr)}.lp .bento .wide{grid-row:span 1;grid-column:span 2}}
 @media(max-width:560px){.lp .bento{grid-template-columns:1fr}.lp .bento .wide{grid-column:span 1}}
 
+/* flip cards 3D */
+.lp .flip-sec{background:linear-gradient(180deg,#fff,#FDF0F6)}
+.lp .flips{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.lp .flip{height:230px;perspective:1100px;outline:none}
+.lp .flip-inner{position:relative;width:100%;height:100%;transition:transform .7s var(--ease-spring);transform-style:preserve-3d}
+.lp .flip:hover .flip-inner,.lp .flip:focus-visible .flip-inner{transform:rotateY(180deg)}
+.lp .flip-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:24px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;text-align:center;border:1px solid var(--border);box-shadow:0 8px 26px rgba(236,111,156,.14)}
+.lp .flip-front{background:#fff}
+.lp .flip-emoji{font-size:54px;filter:drop-shadow(0 8px 10px rgba(192,79,126,.2))}
+.lp .flip-front h3{font-size:21px}
+.lp .flip-back{background:linear-gradient(150deg,var(--pinkBright),var(--pinkDeep));color:#fff;transform:rotateY(180deg)}
+.lp .flip-back p{color:#fff;font-size:15px;opacity:.96}
+.lp .flip-link{font-family:var(--display);font-weight:700;color:#fff;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.55);padding:9px 18px;border-radius:12px;transition:background .2s}
+.lp .flip-link:hover{background:rgba(255,255,255,.32);color:#fff}
+@media(max-width:860px){.lp .flips{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:430px){.lp .flips{grid-template-columns:1fr}}
+
 /* marquee */
 .lp .marquee-sec{padding:clamp(56px,8vw,90px) 0;background:linear-gradient(180deg,#FDF0F6,#FFF8FB)}
 .lp .marquee{overflow:hidden;margin:36px 0 8px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
@@ -524,6 +728,37 @@ const CSS = `
 @keyframes scrollX{to{transform:translateX(-50%)}}
 .lp .chip{flex:none;background:#fff;border:1px solid var(--border);border-radius:999px;padding:13px 24px;font-weight:700;color:var(--pinkDeep);box-shadow:0 4px 18px rgba(236,111,156,.1);transition:transform .2s var(--ease-spring),background .2s,color .2s}
 .lp .chip:hover{background:linear-gradient(135deg,var(--pinkBright),var(--pink));color:#fff;transform:translateY(-4px) scale(1.04)}
+
+/* ticker de productos */
+.lp .ticker-sec{padding:clamp(56px,8vw,84px) 0;background:linear-gradient(180deg,#FFF8FB,#FDF0F6)}
+.lp .ticker{overflow:hidden;margin-top:38px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.lp .ticker-track{display:flex;gap:18px;width:max-content;padding:0 9px;animation:scrollX 38s linear infinite}
+.lp .ticker:hover .ticker-track{animation-play-state:paused}
+.lp .prod{flex:none;width:190px;background:#fff;border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 6px 22px rgba(236,111,156,.1);transition:transform .25s var(--ease-spring),box-shadow .25s}
+.lp .prod:hover{transform:translateY(-6px);box-shadow:0 18px 40px rgba(236,111,156,.22)}
+.lp .prod-img{position:relative;aspect-ratio:1;overflow:hidden;background:linear-gradient(135deg,var(--card1),var(--card2));display:flex;align-items:center;justify-content:center}
+.lp .prod-img img{width:100%;height:100%;object-fit:cover;transition:transform .4s var(--ease)}
+.lp .prod:hover .prod-img img{transform:scale(1.07)}
+.lp .prod-ph{font-size:46px}
+.lp .prod-info{padding:13px 15px 16px}
+.lp .prod-name{display:block;font-family:var(--display);font-weight:600;color:var(--text);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lp .prod-price{display:block;margin-top:4px;font-family:var(--display);font-weight:700;color:var(--pinkDeep);font-size:17px}
+
+/* ubicación + contacto */
+.lp .loc-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:34px;align-items:stretch;margin-top:14px}
+.lp .loc-info{display:flex;flex-direction:column;gap:14px}
+.lp .loc-row{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:18px;padding:16px 18px;box-shadow:0 4px 18px rgba(236,111,156,.08);transition:transform .2s var(--ease),box-shadow .2s}
+.lp .loc-row.link:hover{transform:translateX(4px);box-shadow:0 10px 26px rgba(236,111,156,.18)}
+.lp .loc-ico{font-size:24px;width:46px;height:46px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:14px;background:linear-gradient(135deg,var(--card1),var(--card2))}
+.lp .loc-row b{font-family:var(--display);color:var(--pinkDeep);display:block;font-size:15px}
+.lp .loc-row span{color:var(--muted);font-size:14px}
+.lp .loc-map{border-radius:24px;overflow:hidden;border:1px solid var(--border);box-shadow:0 14px 40px rgba(236,111,156,.16);min-height:340px}
+.lp .loc-map iframe{width:100%;height:100%;min-height:340px;border:0;display:block}
+.lp .map-ph{height:100%;min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center;padding:24px;background:linear-gradient(135deg,#FDE7F0,#EAF3FD)}
+.lp .map-ph span{font-size:44px}
+.lp .map-ph b{font-family:var(--display);color:var(--pinkDeep);font-size:18px}
+.lp .map-ph p{color:var(--muted);font-size:14px;max-width:260px}
+@media(max-width:760px){.lp .loc-grid{grid-template-columns:1fr}}
 
 /* pasos */
 .lp .steps-sec{background:#fff}
