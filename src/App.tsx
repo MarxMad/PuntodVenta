@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { ADMIN_BASE } from './config'
+import Landing from './pages/Landing'
 import Catalog from './pages/Catalog'
 import Login from './pages/admin/Login'
 import AdminLayout from './pages/admin/AdminLayout'
@@ -22,7 +23,8 @@ function Guard({ routeKey, children }: { routeKey: string; children: React.React
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Catalog />} />
+      <Route path="/" element={<Landing />} />
+      <Route path="/tienda" element={<Catalog />} />
 
       <Route path={`${ADMIN_BASE}/login`} element={<Login />} />
       <Route path={ADMIN_BASE} element={<AdminLayout />}>
